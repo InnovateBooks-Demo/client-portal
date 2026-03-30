@@ -10,6 +10,8 @@ import {
   Clock
 } from "lucide-react";
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 const ExpiredLinkPage = () => {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -24,8 +26,7 @@ const ExpiredLinkPage = () => {
     setError("");
 
     try {
-      const API_BASE_URL = window.location.origin.replace(":3002", ":5000"); // Standard mapping
-      const response = await fetch(`${API_BASE_URL}/api/client-portal/request-new-link`, {
+      const response = await fetch(`${API_BASE}/api/client-portal/request-new-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

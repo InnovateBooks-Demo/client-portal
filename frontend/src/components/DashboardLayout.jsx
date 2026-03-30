@@ -20,16 +20,16 @@ export default function DashboardLayout() {
     return (
         <div className="centered-message error-page">
             <ShieldCheck size={64} style={{color: 'var(--danger)', marginBottom: '1rem'}} />
-            <h2>Session Expired</h2>
-            <p>Please log in through your secure link email.</p>
-            <button className="btn btn-primary" onClick={() => navigate('/portal/invalid')}>Go Back</button>
+            <h2>Session Required</h2>
+            <p>Please sign in to access your secure portal.</p>
+            <button className="btn btn-primary" onClick={() => navigate('/login')}>Sign In</button>
         </div>
     );
   }
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login');
   };
 
   return (

@@ -3,6 +3,8 @@ import { PortalContext } from './PortalGuard.jsx';
 import { Save, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 export default function OnboardingForm() {
   const { data, token, refreshData, accessToken } = useContext(PortalContext);
   const navigate = useNavigate();
@@ -47,7 +49,7 @@ export default function OnboardingForm() {
     e?.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch(`/api/client-portal/${token}/onboarding`, {
+      const res = await fetch(`${API_BASE}/api/client-portal/${token}/onboarding`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',

@@ -6,6 +6,7 @@ import ExpiredLinkPage from './pages/ExpiredLinkPage.jsx';
 import DashboardLayout from './components/DashboardLayout.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import ContractDashboard from './pages/ContractDashboard.jsx';
+import LoginPage from './pages/LoginPage.jsx';
 
 // Standard catch-all for genuinely invalid (non-expired) tokens
 const InvalidPortal = () => (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/portal/:token" element={<PortalGuard />} />
           <Route path="/portal/expired/:token" element={<ExpiredLinkPage />} />
           <Route path="/portal/invalid" element={<InvalidPortal />} />
+          <Route path="/login" element={<LoginPage />} />
 
           {/* Authenticated Dashboard Experience */}
           <Route element={<DashboardLayout />}>
@@ -35,8 +37,8 @@ function App() {
           </Route>
 
           {/* Fallback */}
-          <Route path="/" element={<Navigate to="/portal/invalid" replace />} />
-          <Route path="*" element={<Navigate to="/portal/invalid" replace />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
