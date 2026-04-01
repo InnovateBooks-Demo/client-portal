@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Lock, Mail, Key, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 export default function PortalGuard() {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ export default function PortalGuard() {
     const fetchHandshake = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/client-portal/${token}/handshake`);
+        const res = await fetch(`${API_BASE}/api/client-portal/${token}/handshake`);
         
         if (res.status === 403) {
             // Specific handling for expired/invalid tokens
@@ -35,7 +37,14 @@ export default function PortalGuard() {
         }
         const json = await res.json();
         setData(json); 
-        setUserExists(!!json.user_exists);
+        
+        if (json.user_exists) {
+            // User already set up their account, redirect to login
+            navigate(`/login?email=${json.email}`);
+            return;
+        }
+        
+        setUserExists(false);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -61,8 +70,7 @@ export default function PortalGuard() {
     }
     
     try {
-        const endpoint = userExists ? '/api/client-portal/login' : '/api/client-portal/set-password';
-        const res = await fetch(endpoint, {
+        const res = await fetch(`${API_BASE}/api/client-portal/setup-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -119,9 +127,9 @@ export default function PortalGuard() {
               <div style={{display: 'inline-flex', padding: '1rem', background: 'rgba(59,130,246,0.1)', borderRadius: '50%', marginBottom: '1.5rem', border: '1px solid rgba(59,130,246,0.2)'}}>
                   <Lock size={36} style={{color: 'var(--primary)'}} />
               </div>
-              <h2 style={{margin: '0 0 0.75rem 0', fontSize: '1.75rem'}}>{userExists ? 'Welcome Back' : 'Secure Your Portal'}</h2>
+              <h2 style={{margin: '0 0 0.75rem 0', fontSize: '1.75rem'}}>Setup Your Account</h2>
               <p style={{margin: 0, color: 'var(--text-muted)', lineHeight: '1.5'}}>
-                  {userExists ? 'Please enter your password to access your secure documents.' : 'Set a password to securely access and manage your documents.'}
+                  Set a secure password to access your contracts and onboarding documents.
               </p>
           </div>
           
@@ -137,30 +145,28 @@ export default function PortalGuard() {
               </div>
               
               <div className="form-group" style={{marginBottom: '1.25rem'}}>
-                  <label className="form-label" style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}><Key size={16}/> Password</label>
+                  <label className="form-label" style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}><Key size={16}/> Create Password</label>
                   <input 
                       type="password" 
                       value={authForm.password}
                       onChange={e => setAuthForm({...authForm, password: e.target.value})}
                       className="form-control" 
                       required 
-                      placeholder={userExists ? 'Enter your password' : 'Create a secure password'}
+                      placeholder="Enter a secure password"
                   />
               </div>
               
-              {!userExists && (
-                  <div className="form-group" style={{marginBottom: '1.25rem'}}>
-                      <label className="form-label" style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}><ShieldCheck size={16}/> Confirm Password</label>
-                      <input 
-                          type="password" 
-                          value={authForm.confirm}
-                          onChange={e => setAuthForm({...authForm, confirm: e.target.value})}
-                          className="form-control" 
-                          required 
-                          placeholder="Confirm your password"
-                      />
-                  </div>
-              )}
+              <div className="form-group" style={{marginBottom: '1.25rem'}}>
+                  <label className="form-label" style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}><ShieldCheck size={16}/> Confirm Password</label>
+                  <input 
+                      type="password" 
+                      value={authForm.confirm}
+                      onChange={e => setAuthForm({...authForm, confirm: e.target.value})}
+                      className="form-control" 
+                      required 
+                      placeholder="Confirm your password"
+                  />
+              </div>
               
               {authError && (
                   <div style={{color: '#ff6b6b', fontSize: '0.95rem', margin: '1rem 0', padding: '0.75rem', background: 'rgba(255, 107, 107, 0.1)', border: '1px solid rgba(255, 107, 107, 0.2)', borderRadius: '6px', textAlign: 'center'}}>
@@ -169,7 +175,7 @@ export default function PortalGuard() {
               )}
               
               <button type="submit" className="btn btn-primary" style={{width: '100%', marginTop: '1rem', padding: '1rem', fontSize: '1.05rem', fontWeight: 600}} disabled={authLoading}>
-                  {authLoading ? <Loader2 size={18} className="spinner"/> : (userExists ? 'Access Secure Portal' : 'Create Account')}
+                  {authLoading ? <Loader2 size={18} className="spinner"/> : 'Setup & Continue'}
               </button>
           </form>
         </div>

@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -19,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserInfo = async () => {
     try {
-      const res = await fetch('/api/client-portal/me', {
+      const res = await fetch(`${API_BASE}/api/client-portal/me`, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       });
       if (res.ok) {

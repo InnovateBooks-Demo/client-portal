@@ -2,6 +2,8 @@ import React, { useContext, useState } from 'react';
 import { PortalContext } from './PortalGuard.jsx';
 import { PenTool, CheckCircle2, AlertCircle } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 export default function SignPage() {
   const { data, token, refreshData, accessToken } = useContext(PortalContext);
   
@@ -17,7 +19,7 @@ export default function SignPage() {
     setSigning(true);
     setError(null);
     try {
-      const res = await fetch(`/api/client-portal/${token}/sign`, {
+      const res = await fetch(`${API_BASE}/api/client-portal/${token}/sign`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

@@ -8,6 +8,8 @@ import { useAuth } from '../context/AuthContext';
 import { useDebounce } from '../hooks/useDebounce';
 import AuditTimeline from '../components/AuditTimeline';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 export default function ContractDashboard() {
   const { contract_id } = useParams();
   const { accessToken } = useAuth();
@@ -30,7 +32,7 @@ export default function ContractDashboard() {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(`/api/client-portal/contracts/${contract_id}`, {
+      const res = await fetch(`${API_BASE}/api/client-portal/contracts/${contract_id}`, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       });
       const json = await res.json();
@@ -69,7 +71,7 @@ export default function ContractDashboard() {
       
       setSaveStatus('saving');
       try {
-        const res = await fetch(`/api/client-portal/onboarding/${contract_id}`, {
+        const res = await fetch(`${API_BASE}/api/client-portal/onboarding/${contract_id}`, {
           method: 'PATCH',
           headers: { 
             'Content-Type': 'application/json',
@@ -82,7 +84,7 @@ export default function ContractDashboard() {
           setRefreshAudit(prev => prev + 1);
           setTimeout(() => setSaveStatus('idle'), 3000);
           // Optional: Re-fetch for updated status counters
-          const updateRes = await fetch(`/api/client-portal/contracts/${contract_id}`, {
+          const updateRes = await fetch(`${API_BASE}/api/client-portal/contracts/${contract_id}`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
           });
           const updateJson = await updateRes.json();
@@ -120,7 +122,7 @@ export default function ContractDashboard() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/api/client-portal/upload', {
+      const res = await fetch(`${API_BASE}/api/client-portal/upload`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${accessToken}` },
         body: formData
@@ -152,7 +154,7 @@ export default function ContractDashboard() {
   const handleSign = async () => {
     if (data.status === 'SIGNED') return;
     try {
-      const res = await fetch(`/api/client-portal/sign/${contract_id}`, {
+      const res = await fetch(`${API_BASE}/api/client-portal/sign/${contract_id}`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

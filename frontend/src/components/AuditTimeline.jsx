@@ -4,6 +4,8 @@ import {
   Bell, AlertTriangle, CheckCircle2, Circle
 } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 const EVENT_ICONS = {
   contract_sent: { icon: Send, color: '#3b82f6', label: 'Contract Sent' },
   portal_opened: { icon: Eye, color: '#6366f1', label: 'Portal Opened' },
@@ -23,7 +25,7 @@ export default function AuditTimeline({ contractId, accessToken, refreshTrigger 
   useEffect(() => {
     const fetchTimeline = async () => {
       try {
-        const res = await fetch(`/api/client-portal/audit/${contractId}`, {
+        const res = await fetch(`${API_BASE}/api/client-portal/audit/${contractId}`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         const json = await res.json();
