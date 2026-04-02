@@ -45,79 +45,64 @@ export default function AuditTimeline({ contractId, accessToken, refreshTrigger 
   if (loading) return null;
 
   return (
-    <div className="audit-timeline-container" style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1rem',
-      padding: '1.5rem',
-      background: 'rgba(255,255,255,0.02)',
-      borderRadius: 'var(--radius-md)',
-      border: '1px solid var(--surface-border)'
-    }}>
-      <h3 style={{fontSize: '0.9rem', color: 'var(--primary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-        <Circle size={12} fill="var(--primary)"/> Activity History
-      </h3>
-
-      <div className="timeline-items" style={{display: 'flex', flexDirection: 'column', gap: '0.75rem'}}>
-        {timeline.length === 0 && <p style={{fontSize: '0.8rem', opacity: 0.5}}>No activity recorded yet.</p>}
-        {timeline.map((item, idx) => {
-          const config = EVENT_ICONS[item.event] || { icon: Circle, color: '#94a3b8', label: item.event };
-          const Icon = config.icon;
-          
-          return (
-            <div key={idx} className="timeline-item" style={{
-              display: 'flex',
-              gap: '1rem',
-              position: 'relative',
-              paddingBottom: idx === timeline.length - 1 ? 0 : '0.75rem'
-            }}>
-              {/* Vertical Connector Line */}
-              {idx !== timeline.length - 1 && (
-                <div style={{
-                  position: 'absolute',
-                  left: '11px',
-                  top: '24px',
-                  bottom: '0',
-                  width: '2px',
-                  background: 'var(--surface-border)',
-                  opacity: 0.3
-                }} />
-              )}
-
+    <div className="timeline-items" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      {timeline.length === 0 && <p style={{ fontSize: '0.8rem', color: '#94A3B8' }}>No activity recorded yet.</p>}
+      {timeline.map((item, idx) => {
+        const config = EVENT_ICONS[item.event] || { icon: Circle, color: '#94a3b8', label: item.event };
+        const Icon = config.icon;
+        
+        return (
+          <div key={idx} className="timeline-item" style={{
+            display: 'flex',
+            gap: '1rem',
+            position: 'relative',
+            paddingBottom: idx === timeline.length - 1 ? 0 : '0.75rem'
+          }}>
+            {/* Vertical Connector Line */}
+            {idx !== timeline.length - 1 && (
               <div style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                background: `${config.color}20`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                zIndex: 1
-              }}>
-                <Icon size={14} style={{color: config.color}} />
-              </div>
+                position: 'absolute',
+                left: '11px',
+                top: '24px',
+                bottom: '0',
+                width: '1px',
+                background: '#E2E8F0'
+              }} />
+            )}
 
-              <div style={{flex: 1}}>
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                  <span style={{fontSize: '0.85rem', fontWeight: 500}}>{config.label}</span>
-                  <span style={{fontSize: '0.7rem', opacity: 0.5}}>
-                    {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-                {item.metadata?.filename && (
-                   <div style={{fontSize: '0.75rem', color: 'var(--primary)', marginTop: '2px'}}>
-                     {item.metadata.filename}
-                   </div>
-                )}
-                <div style={{fontSize: '0.7rem', opacity: 0.4, marginTop: '2px'}}>
-                  {new Date(item.timestamp).toLocaleDateString()}
-                </div>
+            <div style={{
+              width: '24px',
+              height: '24px',
+              borderRadius: '6px',
+              background: '#F1F5F9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              zIndex: 1
+            }}>
+              <Icon size={12} style={{ color: '#033F99' }} />
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#1E293B' }}>{config.label}</span>
+                <span style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 500 }}>
+                  {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+              {item.metadata?.filename && (
+                 <div style={{ fontSize: '0.75rem', color: '#033F99', marginTop: '2px', fontWeight: 600 }}>
+                   {item.metadata.filename}
+                 </div>
+              )}
+              <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '2px' }}>
+                {new Date(item.timestamp).toLocaleDateString()}
               </div>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

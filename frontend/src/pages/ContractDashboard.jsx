@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  FileText, ClipboardList, PenTool, CheckCircle2, AlertCircle, 
-  Upload, Download, Save, ShieldCheck, ExternalLink, Trash2, Clock, Loader2
+import {
+  FileText, ClipboardList, PenTool, CheckCircle2, AlertCircle,
+  Upload, Download, Save, ShieldCheck, ExternalLink, Trash2, Clock, Loader2, ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useDebounce } from '../hooks/useDebounce';
@@ -68,12 +68,12 @@ export default function ContractDashboard() {
     const autoSave = async () => {
       // Only auto-save if data is loaded and not already signed
       if (!data || data.status === 'SIGNED' || saveStatus === 'saving' || loading) return;
-      
+
       setSaveStatus('saving');
       try {
         const res = await fetch(`${API_BASE}/api/client-portal/onboarding/${contract_id}`, {
           method: 'PATCH',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${accessToken}`
           },
@@ -99,13 +99,13 @@ export default function ContractDashboard() {
 
     // Prevent initial mount empty save
     if (loading) return;
-    
+
     // Simple check if anything changed vs what we fetched
     // (Ideally a deep comparison, but for now we rely on the debounced value change)
     if (JSON.stringify(onboarding) !== JSON.stringify(data?.onboarding || {})) {
-        autoSave();
+      autoSave();
     }
-    
+
   }, [debouncedOnboarding]);
 
   const handleInputChange = (e) => {
@@ -131,15 +131,15 @@ export default function ContractDashboard() {
       if (json.success) {
         setRefreshAudit(prev => prev + 1);
         if (field === 'agreement_docs') {
-            setOnboarding(prev => ({
-                ...prev,
-                documents: { ...prev.documents, agreement_docs: [...prev.documents.agreement_docs, json.file_url] }
-            }));
+          setOnboarding(prev => ({
+            ...prev,
+            documents: { ...prev.documents, agreement_docs: [...prev.documents.agreement_docs, json.file_url] }
+          }));
         } else {
-            setOnboarding(prev => ({
-                ...prev,
-                documents: { ...prev.documents, [field]: json.file_url }
-            }));
+          setOnboarding(prev => ({
+            ...prev,
+            documents: { ...prev.documents, [field]: json.file_url }
+          }));
         }
       } else {
         alert(json.detail || "Upload failed");
@@ -156,7 +156,7 @@ export default function ContractDashboard() {
     try {
       const res = await fetch(`${API_BASE}/api/client-portal/sign/${contract_id}`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${accessToken}`
         },
@@ -180,153 +180,206 @@ export default function ContractDashboard() {
 
   if (loading) return (
     <div className="centered-message">
-       <div className="spinner" style={{width: '40px', height: '40px'}} />
-       <p style={{marginTop: '1rem'}}>Securing document workspace...</p>
+      <div className="spinner" style={{ width: '40px', height: '40px' }} />
+      <p style={{ marginTop: '1rem' }}>Securing document workspace...</p>
     </div>
   );
 
   if (error) return (
     <div className="centered-message error-page">
-       <ShieldCheck size={64} style={{color: 'var(--danger)', marginBottom: '1rem'}} />
-       <h2>Access Error</h2>
-       <p>{error}</p>
-       <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>Return to Dashboard</button>
+      <ShieldCheck size={64} style={{ color: 'var(--danger)', marginBottom: '1rem' }} />
+      <h2>Access Error</h2>
+      <p>{error}</p>
+      <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>Return to Dashboard</button>
     </div>
   );
 
   const isSigned = data.status === 'SIGNED';
 
   return (
-    <div style={{height: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'fadeIn 0.5s ease'}}>
+    <div style={{ 
+      height: 'calc(100vh - 120px)', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      animation: 'fadeIn 0.5s ease',
+      padding: '0'
+    }}>
       
-      {/* Header Area */}
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-          <div>
-            <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem'}}>
-                <button className="btn btn-ghost" onClick={() => navigate('/dashboard')} style={{padding: '0.25rem 0.5rem', fontSize: '0.8rem', color: 'var(--primary)'}}>
-                    ← Dashboard
-                </button>
-                <h1 style={{fontSize: '1.5rem', margin: 0}}>{contract_id}</h1>
-            </div>
-            <p style={{margin: 0, fontSize: '0.9rem'}}>Organization: <strong>{data.contract.party_name}</strong> • Version: {data.version}</p>
+      {/* Header Area (Fixed at Top) */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexShrink: 0 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+            <button
+              className="btn"
+              onClick={() => navigate('/dashboard')}
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '0.85rem',
+                background: 'white',
+                border: '1px solid #E5E7EB',
+                color: '#475569',
+                fontWeight: 600,
+                borderRadius: '10px'
+              }}
+            >
+              ← Dashboard
+            </button>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>{contract_id}</h1>
           </div>
-
-          <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-              {saveStatus === 'saving' && <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)', fontSize: '0.85rem'}}><Loader2 size={16} className="spinner"/> Saving...</div>}
-              {saveStatus === 'saved' && <div style={{display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)', fontSize: '0.85rem'}}><CheckCircle2 size={16}/> All changes saved</div>}
-              {isSigned && <div style={{background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--accent)', color: 'var(--accent)', padding: '0.5rem 1rem', borderRadius: '40px', fontSize: '0.85rem', fontWeight: 600, display: 'flex', gap: '0.5rem', alignItems: 'center'}}><ShieldCheck size={16}/> Authenticated & Signed</div>}
-          </div>
-      </div>
-
-      {/* Main Workspace 3-Pane Layout */}
-      <div style={{flex: 1, display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem', minHeight: 0}}>
-        
-        {/* LEFT: Contract Document Pane */}
-        <div style={{overflowY: 'auto', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)', padding: '2rem'}}>
-             <div className="contract-preview" style={{margin: 0, padding: '2.5rem', boxShadow: 'none', background: '#fff'}}>
-                <div className="contract-header" style={{borderBottom: '2px solid #f1f5f9'}}>
-                    <div>
-                        <h2 style={{color: '#0f172a', margin:0, fontSize: '1.5rem'}}>Service Agreement</h2>
-                        <p style={{color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase'}}>{contract_id}</p>
-                    </div>
-                </div>
-                
-                <div style={{color: '#334155', fontSize: '0.9rem'}}>
-                    <h3 style={{color: '#0f172a', margin: '1.5rem 0 0.5rem', fontSize: '1rem'}}>1. Parties</h3>
-                    <p>This agreement is made between <strong>InnovateBook Services</strong> and <strong>{data.contract.party_name}</strong>.</p>
-                    
-                    <h3 style={{color: '#0f172a', margin: '1.5rem 0 0.5rem', fontSize: '1rem'}}>2. Commercial Value</h3>
-                    <p>Total Estimated Value: <strong>₹{data.contract.total_value?.toLocaleString()}</strong></p>
-                    <p>Standard Payment Terms: <strong>{data.contract.payment_terms}</strong></p>
-                    
-                    <h3 style={{color: '#0f172a', margin: '1.5rem 0 0.5rem', fontSize: '1rem'}}>3. Scope & Validity</h3>
-                    <p>This contract remains valid for the duration of the onboarding period and serves as the legal baseline for subsequent service deliveries.</p>
-                </div>
-             </div>
+          <p style={{ margin: 0, fontSize: '0.95rem', color: '#64748B' }}>
+            Organization: <strong style={{ color: '#111827' }}>{data.contract.party_name}</strong> • Version: {data.version}
+          </p>
         </div>
 
-        {/* RIGHT: Onboarding & Tracker Pane */}
-        <div style={{display: 'flex', flexDirection: 'column', gap: '1.5rem', overflowY: 'auto', paddingRight: '0.5rem'}}>
-            
-            {/* Onboarding Tracker Cards */}
-            <div className="glass-panel" style={{padding: '1.5rem'}}>
-                <h3 style={{marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem'}}><ClipboardList size={18}/> Onboarding Requirements</h3>
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem'}}>
-                    <div style={{padding: '0.75rem', background: data.onboarding_status.company_info ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.02)', border: '1px solid var(--surface-border)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem'}}>
-                        {data.onboarding_status.company_info ? <CheckCircle2 size={16} color="var(--accent)"/> : <Clock size={16} opacity={0.5}/>} Company Info
-                    </div>
-                    <div style={{padding: '0.75rem', background: data.onboarding_status.contacts ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.02)', border: '1px solid var(--surface-border)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem'}}>
-                        {data.onboarding_status.contacts ? <CheckCircle2 size={16} color="var(--accent)"/> : <Clock size={16} opacity={0.5}/>} Billing Contacts
-                    </div>
-                    <div style={{padding: '0.75rem', background: data.onboarding_status.tax_info ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.02)', border: '1px solid var(--surface-border)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem'}}>
-                        {data.onboarding_status.tax_info ? <CheckCircle2 size={16} color="var(--accent)"/> : <Clock size={16} opacity={0.5}/>} Tax Details (GST)
-                    </div>
-                    <div style={{padding: '0.75rem', background: data.onboarding_status.documents ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.02)', border: '1px solid var(--surface-border)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem'}}>
-                        {data.onboarding_status.documents ? <CheckCircle2 size={16} color="var(--accent)"/> : <Clock size={16} opacity={0.5}/>} Documents Uploaded
-                    </div>
-                </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          {saveStatus === 'saving' && <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#033F99', fontSize: '0.85rem', fontWeight: 600 }}><Loader2 size={16} className="spinner" /> Saving...</div>}
+          {saveStatus === 'saved' && <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#166534', fontSize: '0.85rem', fontWeight: 600 }}><CheckCircle2 size={16} /> Saved</div>}
+          {isSigned && (
+            <div className="status-pill-soft status-pill-signed">
+              <ShieldCheck size={16} /> <span>Signed Copy</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Workspace (Scrollable Panes) */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 2fr) minmax(320px, 1fr)',
+        gap: '2rem',
+        flex: 1,
+        minHeight: 0
+      }}>
+
+        {/* LEFT: Contract Document Pane (Scrollable) */}
+        <div className="scroll-container" style={{ overflowY: 'auto', paddingRight: '1rem', minWidth: 0 }}>
+          <div className="doc-paper">
+            <div className="doc-header">
+              <h2 style={{ color: '#111827', margin: 0, fontSize: '1.75rem', fontWeight: 800 }}>Service Agreement</h2>
+              <p style={{ color: '#94A3B8', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', marginTop: '0.5rem', letterSpacing: '0.05em' }}>{contract_id}</p>
             </div>
 
-            {/* Visual Audit Lifecycle Timeline */}
-            <AuditTimeline contractId={contract_id} accessToken={accessToken} refreshTrigger={refreshAudit} />
+            <div className="doc-body">
+              <div className="doc-section-title">1. Parties</div>
+              <p>This Services Agreement (the "Agreement") is entered into between <strong>InnovateBook Services</strong> and <strong>{data.contract.party_name}</strong>. Both parties agree to the terms and conditions outlined in this electronic record.</p>
 
-            {/* Forms Section */}
-            <div className="glass-panel" style={{flex: 1, padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem'}}>
-                <div style={{opacity: isSigned ? 0.6 : 1, pointerEvents: isSigned ? 'none' : 'auto'}}>
-                    <h4 style={{marginBottom: '1rem', color: 'var(--primary)', borderBottom: '1px solid rgba(59, 130, 246, 0.2)', paddingBottom: '0.5rem'}}>Legal Entity Details</h4>
-                    <div className="form-group">
-                        <label className="form-label">Legal Company Name</label>
-                        <input name="legal_name" value={onboarding.legal_name} onChange={handleInputChange} className="form-control" placeholder="Acme Corp Pvt Ltd" />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">Registered Address</label>
-                        <textarea name="address" value={onboarding.address} onChange={handleInputChange} className="form-control" rows="2" placeholder="Full billing address..." />
-                    </div>
-                    <div className="form-group">
-                        <label className="form-label">GST Number</label>
-                        <input name="gst" value={onboarding.gst} onChange={handleInputChange} className="form-control" placeholder="27AAAAA0000A1Z5" />
-                    </div>
+              <div className="doc-section-title">2. Commercial Value</div>
+              <p>The total estimated value of the services described herein is <strong>₹{data.contract.total_value?.toLocaleString()}</strong>. Standard payment terms are defined as <strong>{data.contract.payment_terms}</strong> from the date of invoice issuance.</p>
 
-                    <h4 style={{marginTop: '2rem', marginBottom: '1rem', color: 'var(--primary)', borderBottom: '1px solid rgba(59, 130, 246, 0.2)', paddingBottom: '0.5rem'}}>Required Documents</h4>
-                    
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
-                        <FileUploader 
-                            label="GST Registration Certificate" 
-                            field="gst_certificate"
-                            url={onboarding.documents.gst_certificate} 
-                            onUpload={handleFileUpload}
-                            uploading={uploading === 'gst_certificate'}
-                        />
-                        <FileUploader 
-                            label="PAN Card Copy" 
-                            field="pan_card"
-                            url={onboarding.documents.pan_card} 
-                            onUpload={handleFileUpload}
-                            uploading={uploading === 'pan_card'}
-                        />
-                    </div>
-                </div>
-
-                {/* Bottom Action Footer (Inside Scroll Pane) */}
-                <div style={{marginTop: 'auto', paddingTop: '2rem', borderTop: '1px solid var(--surface-border)'}}>
-                    {!isSigned ? (
-                        <button 
-                            className="btn btn-success" 
-                            style={{width: '100%', padding: '1.25rem', fontSize: '1.1rem'}}
-                            disabled={!data.onboarding_status.company_info || !data.onboarding_status.tax_info}
-                            onClick={handleSign}
-                        >
-                            <PenTool size={22}/> Confirm & Sign Contract
-                        </button>
-                    ) : (
-                        <div style={{textAlign: 'center', padding: '1rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: 'var(--radius-md)', border: '1px solid var(--accent)'}}>
-                            <CheckCircle2 size={32} color="var(--accent)" style={{marginBottom: '0.5rem'}}/>
-                            <h4 style={{margin:0}}>Contract Fully Executed</h4>
-                            <p style={{fontSize: '0.8rem', margin: '0.25rem 0 0'}}>Signed on {new Date(data.signed_at).toLocaleString()}</p>
-                        </div>
-                    )}
-                </div>
+              <div className="doc-section-title">3. Scope & Validity</div>
+              <p>This contract remains valid for the duration of the onboarding period and serves as the legal baseline for subsequent service deliveries. All electronic signatures captured via this portal are legally binding.</p>
+              
+              <div className="doc-section-title">4. Terms of Service</div>
+              <p>User agrees to provide accurate billing and contact information via the portal. Failure to complete requirements within 30 days may result in onboarding delays. All data provided is stored using industry-standard encryption protocols.</p>
             </div>
+          </div>
+        </div>
+
+        {/* RIGHT: Sidebar Pane (Scrollable) */}
+        <div className="scroll-container" style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: '1.25rem', 
+          overflowY: 'auto', 
+          paddingRight: '0.75rem',
+          height: '100%' 
+        }}>
+          
+          {/* Requirement Tracker Card */}
+          <div className="side-card">
+            <div className="side-card-title">
+              <ClipboardList size={18} color="#033F99" />
+              <span>Requirement Tracker</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div className={`requirement-item ${data.onboarding_status.company_info ? 'completed' : ''}`}>
+                {data.onboarding_status.company_info ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
+                <span>Company Info</span>
+              </div>
+              <div className={`requirement-item ${data.onboarding_status.contacts ? 'completed' : ''}`}>
+                {data.onboarding_status.contacts ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
+                <span>Billing Contacts</span>
+              </div>
+              <div className={`requirement-item ${data.onboarding_status.tax_info ? 'completed' : ''}`}>
+                {data.onboarding_status.tax_info ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
+                <span>Tax Details</span>
+              </div>
+              <div className={`requirement-item ${data.onboarding_status.documents ? 'completed' : ''}`}>
+                {data.onboarding_status.documents ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
+                <span>Requirement Docs</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Legal Entity Forms Card */}
+          <div className="side-card" style={{ opacity: isSigned ? 0.6 : 1, pointerEvents: isSigned ? 'none' : 'auto' }}>
+            <div className="side-card-title">
+              <PenTool size={18} color="#033F99" />
+              <span>Legal Entity Details</span>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+              <label className="login-label">Legal Company Name</label>
+              <input name="legal_name" value={onboarding.legal_name} onChange={handleInputChange} className="form-control" placeholder="Acme Corp Pvt Ltd" />
+            </div>
+            <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+              <label className="login-label">Registered Address</label>
+              <textarea name="address" value={onboarding.address} onChange={handleInputChange} className="form-control" rows="2" placeholder="Full billing address..." />
+            </div>
+            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+              <label className="login-label">GST Number</label>
+              <input name="gst" value={onboarding.gst} onChange={handleInputChange} className="form-control" placeholder="27AAAAA0000A1Z5" />
+            </div>
+
+            <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <FileUploader
+                  label="GST Certificate"
+                  field="gst_certificate"
+                  url={onboarding.documents.gst_certificate}
+                  onUpload={handleFileUpload}
+                  uploading={uploading === 'gst_certificate'}
+                />
+                <FileUploader
+                  label="PAN Card Copy"
+                  field="pan_card"
+                  url={onboarding.documents.pan_card}
+                  onUpload={handleFileUpload}
+                  uploading={uploading === 'pan_card'}
+                />
+              </div>
+            </div>
+
+            {!isSigned ? (
+              <button
+                className="login-submit-btn"
+                style={{ width: '100%', padding: '1.25rem', fontSize: '1rem' }}
+                disabled={!data.onboarding_status.company_info || !data.onboarding_status.tax_info}
+                onClick={handleSign}
+              >
+                <span>Confirm Agreement</span>
+                <ArrowRight size={18} style={{ marginLeft: '8px' }} />
+              </button>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '1.25rem', background: '#F0FDF4', borderRadius: '14px', border: '1px solid #DCFCE7' }}>
+                <CheckCircle2 size={28} color="#15803D" style={{ marginBottom: '0.5rem' }} />
+                <h4 style={{ margin: 0, color: '#15803D', fontWeight: 700 }}>Contract Signed</h4>
+                <p style={{ fontSize: '0.75rem', margin: '0.25rem 0 0', color: '#166534', fontWeight: 500 }}>{new Date(data.signed_at).toLocaleDateString()}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Activity Timeline Card */}
+          <div className="side-card">
+            <div className="side-card-title">
+              <Clock size={18} color="#033F99" />
+              <span>Activity Timeline</span>
+            </div>
+            <div className="timeline-wrapper">
+              <AuditTimeline contractId={contract_id} accessToken={accessToken} refreshTrigger={refreshAudit} />
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -335,23 +388,30 @@ export default function ContractDashboard() {
 
 // Sub-component for File Uploads
 const FileUploader = ({ label, field, url, onUpload, uploading }) => (
-    <div style={{padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--surface-border)'}}>
-        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-            <div>
-                <span style={{fontSize: '0.8rem', fontWeight: 600, display: 'block', marginBottom: '0.25rem'}}>{label}</span>
-                {url ? (
-                    <a href={url} target="_blank" rel="noreferrer" style={{fontSize: '0.75rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.25rem', textDecoration: 'none'}}>
-                         <ExternalLink size={12}/> View Uploaded File
-                    </a>
-                ) : (
-                    <span style={{fontSize: '0.75rem', opacity: 0.5}}>No file selected</span>
-                )}
-            </div>
-            
-            <label className="btn btn-ghost" style={{padding: '0.5rem 1rem', fontSize: '0.8rem', cursor: 'pointer', background: 'rgba(255,255,255,0.05)'}}>
-                {uploading ? <Loader2 size={16} className="spinner"/> : <><Upload size={16}/> {url ? 'Replace' : 'Upload'}</>}
-                <input type="file" onChange={(e) => onUpload(e, field)} style={{display: 'none'}} disabled={uploading}/>
-            </label>
-        </div>
+  <div style={{ padding: '1rem', background: '#F8FAFC', borderRadius: '12px', border: '1px dashed #E2E8F0' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ overflow: 'hidden', paddingRight: '1rem' }}>
+        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>{label}</span>
+        {url ? (
+          <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: '0.7rem', color: '#033F99', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem', textDecoration: 'none' }}>
+            <ExternalLink size={12} /> View Document
+          </a>
+        ) : (
+          <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>Pending upload</span>
+        )}
+      </div>
+
+      <label className="btn" style={{
+        padding: '0.4rem 0.8rem',
+        fontSize: '0.75rem',
+        cursor: 'pointer',
+        background: 'white',
+        border: '1px solid #E2E8F0',
+        color: '#475569'
+      }}>
+        {uploading ? <Loader2 size={14} className="spinner" /> : <><Upload size={14} style={{ marginRight: '4px' }} /> {url ? 'Replace' : 'Upload'}</>}
+        <input type="file" onChange={(e) => onUpload(e, field)} style={{ display: 'none' }} disabled={uploading} />
+      </label>
     </div>
+  </div>
 );
