@@ -34,109 +34,126 @@ export default function Dashboard() {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      'SENT': { bg: 'rgba(59, 130, 246, 0.1)', border: 'rgba(59, 130, 246, 0.4)', color: '#60a5fa', icon: <Clock size={14}/>, label: 'Pending Review' },
-      'SIGNED': { bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.4)', color: '#34d399', icon: <CheckCircle2 size={14}/>, label: 'Signed' },
-      'DRAFT': { bg: 'rgba(148, 163, 184, 0.1)', border: 'rgba(148, 163, 184, 0.4)', color: '#94a3b8', icon: <FileText size={14}/>, label: 'Draft' }
+      'SENT': { bg: '#E0EEFF', color: '#033F99', icon: <Clock size={14} />, label: 'Pending Review' },
+      'SIGNED': { bg: '#DCFCE7', color: '#15803D', icon: <CheckCircle2 size={14} />, label: 'Signed' },
+      'DRAFT': { bg: '#F1F5F9', color: '#475569', icon: <FileText size={14} />, label: 'Draft' }
     };
     const s = statusMap[status] || statusMap['DRAFT'];
     return (
       <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: '0.4rem', 
-          padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600,
-          background: s.bg, border: `1px solid ${s.border}`, color: s.color
+        display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+        padding: '6px 14px', borderRadius: '30px', fontSize: '0.75rem', fontWeight: 700,
+        background: s.bg, color: s.color
       }}>
-        {s.icon} {s.label}
+        {s.icon} <span>{s.label}</span>
       </div>
     );
   };
 
-  const filteredContracts = contracts.filter(c => 
-    c.contract_id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredContracts = contracts.filter(c =>
+    c.contract_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.organization_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
     return (
-        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: '300px'}}>
-             <div className="spinner" style={{width: '30px', height: '30px'}} />
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', minHeight: '300px' }}>
+        <div className="spinner" style={{ width: '32px', height: '32px', borderTopColor: '#033F99' }} />
+      </div>
     );
   }
 
   return (
-    <div style={{animation: 'fadeIn 0.5s ease forwards'}}>
-      <div style={{marginBottom: '2.5rem'}}>
-        <h1>My Contracts</h1>
-        <p>Review, populate, and sign your organization's secure agreements.</p>
+    <div style={{ animation: 'fadeIn 0.5s ease forwards' }}>
+      <div style={{ marginBottom: '3.5rem' }}>
+        <h1 style={{ fontWeight: 800, letterSpacing: '-0.03em', marginBottom: '0.75rem' }}>My Contracts</h1>
+        <p style={{ fontSize: '1.05rem', color: '#64748B' }}>Review and manage your organization's secure agreements.</p>
       </div>
 
       <div style={{
-          display: 'flex', gap: '1rem', marginBottom: '2rem',
-          padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)',
-          border: '1px solid var(--surface-border)'
+        display: 'flex', gap: '1rem', marginBottom: '3rem',
+        padding: '1.25rem', background: 'white', borderRadius: '18px',
+        border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
       }}>
-        <div style={{position: 'relative', flex: 1}}>
-          <Search size={18} style={{position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)'}} />
-          <input 
-            type="text" 
-            placeholder="Search contracts..." 
-            className="form-control" 
-            style={{paddingLeft: '2.5rem', marginBottom: 0}}
+        <div style={{ position: 'relative', flex: 1 }}>
+          <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+          <input
+            type="text"
+            placeholder="Search contracts..."
+            className="form-control"
+            style={{ 
+              paddingLeft: '3rem', 
+              marginBottom: 0, 
+              background: '#F8FAFC',
+              border: '1px solid #E5E7EB',
+              height: '48px'
+            }}
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="btn btn-ghost" style={{display: 'inline-flex', gap: '0.5rem', alignItems: 'center'}}>
-          <Filter size={18}/> Filters
+        <button className="btn" style={{ 
+          display: 'inline-flex', gap: '0.5rem', alignItems: 'center',
+          background: 'white', border: '1px solid #E5E7EB', color: '#475569',
+          height: '48px', padding: '0 1.25rem'
+        }}>
+          <Filter size={18} /> <span>Filters</span>
         </button>
       </div>
 
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.5rem'}}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '2rem' }}>
         {filteredContracts.length > 0 ? filteredContracts.map(c => (
-          <div 
-            key={c.contract_id} 
-            className="glass-panel" 
+          <div
+            key={c.contract_id}
+            className="dashboard-card"
             onClick={() => navigate(`/contracts/${c.contract_id}`)}
             style={{
-                cursor: 'pointer', padding: '1.5rem', display: 'flex', flexDirection: 'column', 
-                gap: '1rem', animation: 'none', transform: 'none'
+              cursor: 'pointer', display: 'flex', flexDirection: 'column',
+              gap: '1.25rem', animation: 'none'
             }}
           >
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-                <div style={{
-                    width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(59,130,246,0.1)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)'
-                }}>
-                    <FileText size={24} />
-                </div>
-                {getStatusBadge(c.status)}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{
+                width: '48px', height: '48px', borderRadius: '14px', background: '#F1F5F9',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#033F99'
+              }}>
+                <FileText size={22} />
+              </div>
+              {getStatusBadge(c.status)}
             </div>
 
             <div>
-                <h3 style={{marginBottom: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
-                    {c.contract_id}
-                </h3>
-                <p style={{fontSize: '0.85rem', marginBottom: 0, fontWeight: 500, color: 'var(--text-main)'}}>
-                    {c.organization_name}
-                </p>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.4rem', color: '#111827' }}>
+                {c.contract_id}
+              </h3>
+              <p style={{ fontSize: '0.9rem', marginBottom: 0, fontWeight: 500, color: '#64748B' }}>
+                {c.organization_name}
+              </p>
             </div>
 
             <div style={{
-                marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                paddingTop: '1rem', borderTop: '1px solid var(--surface-border)', opacity: 0.8
+              marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              paddingTop: '1.25rem', borderTop: '1px solid #F1F5F9'
             }}>
-                <span style={{fontSize: '0.75rem', display: 'flex', gap: '0.4rem', alignItems: 'center'}}><Clock size={14}/> {new Date(c.created_at).toLocaleDateString()}</span>
-                <span style={{fontSize: '0.85rem', fontWeight: 600, color: 'var(--primary)', display: 'flex', alignItems: 'center'}}>
-                    Open Contract <ChevronRight size={16} />
-                </span>
+              <span style={{ fontSize: '0.8rem', color: '#94A3B8', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <Clock size={14} /> {new Date(c.created_at).toLocaleDateString()}
+              </span>
+              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#033F99', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                Open Contract <ChevronRight size={18} />
+              </span>
             </div>
           </div>
         )) : (
-            <div className="glass-panel" style={{gridColumn: '1 / -1', textAlign: 'center', padding: '4rem 2rem'}}>
-                <FileText size={48} style={{margin: '0 auto 1rem', opacity: 0.3}} />
-                <h3>No contracts found</h3>
-                <p>We couldn't find any contracts matching your permissions or search criteria.</p>
+          <div className="dashboard-card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '5rem 2rem', background: 'white' }}>
+            <div style={{ 
+              width: '80px', height: '80px', borderRadius: '50%', background: '#F8FAFC', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' 
+            }}>
+              <FileText size={40} style={{ color: '#CBD5E1' }} />
             </div>
+            <h3 style={{ color: '#111827', fontWeight: 700 }}>No contracts found</h3>
+            <p style={{ color: '#64748B' }}>We couldn't find any contracts matching your search criteria.</p>
+          </div>
         )}
       </div>
     </div>
