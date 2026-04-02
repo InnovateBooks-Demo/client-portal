@@ -848,20 +848,44 @@ p {
   background: white;
 }
 
-/* --- Contract Details View Styles --- */
-.dashboard-theme .doc-paper {
-  background: white;
-  border: 1px solid var(--dash-border);
+/* --- Service Bond (Simplified Legal Look) --- */
+.dashboard-theme .service-bond {
+  background: #ffffff;
+  border: 1px solid #E5E7EB;
   border-radius: 12px;
-  padding: 4rem;
+  position: relative;
+  padding: 4rem 3.5rem;
   max-width: 720px;
   margin: 0 auto;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  min-height: 800px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-theme .bond-seal {
+  position: absolute;
+  top: 4rem;
+  right: 3.5rem;
+  width: 80px;
+  height: 80px;
+  border: 2px dashed rgba(3, 63, 153, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(3, 63, 153, 0.15);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-align: center;
+  transform: rotate(-15deg);
+  text-transform: uppercase;
+  pointer-events: none;
 }
 
 .dashboard-theme .doc-header {
   border-bottom: 2px solid #F1F5F9;
-  margin-bottom: 2.5rem;
+  margin-bottom: 3rem;
   padding-bottom: 1.5rem;
 }
 
@@ -869,14 +893,15 @@ p {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--dash-text);
-  margin-top: 2rem;
-  margin-bottom: 0.75rem;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
 }
 
 .dashboard-theme .doc-body {
-  font-size: 1rem;
-  line-height: 1.7;
-  color: #475569;
+  font-family: 'Merriweather', 'Georgia', serif;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #334155;
 }
 
 .dashboard-theme .side-card {

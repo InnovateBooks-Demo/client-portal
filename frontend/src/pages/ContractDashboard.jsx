@@ -197,14 +197,14 @@ export default function ContractDashboard() {
   const isSigned = data.status === 'SIGNED';
 
   return (
-    <div style={{ 
-      height: 'calc(100vh - 120px)', 
-      display: 'flex', 
-      flexDirection: 'column', 
+    <div style={{
+      height: 'calc(100vh - 120px)',
+      display: 'flex',
+      flexDirection: 'column',
       animation: 'fadeIn 0.5s ease',
       padding: '0'
     }}>
-      
+
       {/* Header Area (Fixed at Top) */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexShrink: 0 }}>
         <div>
@@ -251,40 +251,63 @@ export default function ContractDashboard() {
         minHeight: 0
       }}>
 
-        {/* LEFT: Contract Document Pane (Scrollable) */}
-        <div className="scroll-container" style={{ overflowY: 'auto', paddingRight: '1rem', minWidth: 0 }}>
-          <div className="doc-paper">
+        {/* LEFT: Service Bond Pane (Simplified Rounded Look) */}
+        <div style={{ minWidth: 0 }}>
+          <div className="service-bond">
+            <div className="bond-seal">
+              Official<br />Record
+            </div>
+
             <div className="doc-header">
-              <h2 style={{ color: '#111827', margin: 0, fontSize: '1.75rem', fontWeight: 800 }}>Service Agreement</h2>
-              <p style={{ color: '#94A3B8', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', marginTop: '0.5rem', letterSpacing: '0.05em' }}>{contract_id}</p>
+              <h2 style={{
+                color: '#111827',
+                margin: 0,
+                fontSize: '2.25rem',
+                fontWeight: 800,
+                fontFamily: "'Playfair Display', 'Georgia', serif",
+                letterSpacing: '-0.03em'
+              }}>
+                Service Agreement
+              </h2>
+              <p style={{ color: '#94A3B8', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', marginTop: '0.75rem', letterSpacing: '0.1em' }}>
+                Electronic Bond Reference: {contract_id}
+              </p>
             </div>
 
             <div className="doc-body">
-              <div className="doc-section-title">1. Parties</div>
-              <p>This Services Agreement (the "Agreement") is entered into between <strong>InnovateBook Services</strong> and <strong>{data.contract.party_name}</strong>. Both parties agree to the terms and conditions outlined in this electronic record.</p>
+              <div className="doc-section-title">1. THE PARTIES</div>
+              <p>This bound Services Agreement (the "Agreement") is executed with legal intent between <strong>InnovateBook Services</strong> (the "Provider") and <strong>{data.contract.party_name}</strong> (the "Client"). Both signatories acknowledge the terms and conditions set forth in this digital bond.</p>
 
-              <div className="doc-section-title">2. Commercial Value</div>
-              <p>The total estimated value of the services described herein is <strong>₹{data.contract.total_value?.toLocaleString()}</strong>. Standard payment terms are defined as <strong>{data.contract.payment_terms}</strong> from the date of invoice issuance.</p>
+              <div className="doc-section-title">2. VALUATION & TERMS</div>
+              <p>The gross estimated value of the services stipulated in this record is <strong>₹{data.contract.total_value?.toLocaleString()}</strong>. The standard duration for settlement and reconciliation is defined as <strong>{data.contract.payment_terms}</strong> from the date of instrument issuance.</p>
 
-              <div className="doc-section-title">3. Scope & Validity</div>
-              <p>This contract remains valid for the duration of the onboarding period and serves as the legal baseline for subsequent service deliveries. All electronic signatures captured via this portal are legally binding.</p>
-              
-              <div className="doc-section-title">4. Terms of Service</div>
-              <p>User agrees to provide accurate billing and contact information via the portal. Failure to complete requirements within 30 days may result in onboarding delays. All data provided is stored using industry-standard encryption protocols.</p>
+              <div className="doc-section-title">3. SCOPE OF OBLIGATION</div>
+              <p>This instrument serves as the definitive legal framework for the onboarding phase and initial service deliveries. All electronic marks and timestamps recorded via the InnovateBook Portal are deemed authentic and enforceable under applicable digital statutes.</p>
+
+              <div className="doc-section-title">4. COMPLIANCE & GOVERNANCE</div>
+              <p>The Client warrants that all provided legal entity data, including tax registration and administrative contacts, are accurate and current. Any deviations from the stipulated documentation requirements may result in the suspension of system access.</p>
+            </div>
+
+            <div style={{ marginTop: 'auto', paddingTop: '4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', opacity: 0.6 }}>
+              <div style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 600 }}>
+                InnovateBook Digital Trust Network<br />
+                Security Hash: {contract_id.split('-').pop()}...
+              </div>
+              <div style={{ width: '120px', height: '2px', background: '#F1F5F9' }} />
             </div>
           </div>
         </div>
 
         {/* RIGHT: Sidebar Pane (Scrollable) */}
-        <div className="scroll-container" style={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          gap: '1.25rem', 
-          overflowY: 'auto', 
+        <div className="scroll-container" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.25rem',
+          overflowY: 'auto',
           paddingRight: '0.75rem',
-          height: '100%' 
+          height: '100%'
         }}>
-          
+
           {/* Requirement Tracker Card */}
           <div className="side-card">
             <div className="side-card-title">
@@ -370,7 +393,7 @@ export default function ContractDashboard() {
           </div>
 
           {/* Activity Timeline Card */}
-          <div className="side-card">
+          {/* <div className="side-card">
             <div className="side-card-title">
               <Clock size={18} color="#033F99" />
               <span>Activity Timeline</span>
@@ -378,7 +401,7 @@ export default function ContractDashboard() {
             <div className="timeline-wrapper">
               <AuditTimeline contractId={contract_id} accessToken={accessToken} refreshTrigger={refreshAudit} />
             </div>
-          </div>
+          </div> */}
 
         </div>
       </div>
