@@ -154,8 +154,8 @@ const ExpiredLinkPage = () => {
 
       {/* Footer Info */}
       <div className="mt-12 text-center text-slate-400 font-medium text-sm">
-        <p>© 2026 InnovateBook. Secure Compliance Portal.</p>
-        <p className="mt-2">Need direct help? <a href="mailto:support@innovatebook.com" className="text-[#033F99] hover:underline">Contact Support</a></p>
+        <p>© 2026 Synexos. Secure Compliance Portal.</p>
+        <p className="mt-2">Need direct help? <a href="mailto:support@synexos.com" className="text-[#033F99] hover:underline">Contact Support</a></p>
       </div>
     </div>
   );

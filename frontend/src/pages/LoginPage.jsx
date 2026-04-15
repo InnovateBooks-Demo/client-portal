@@ -87,9 +87,13 @@ export default function LoginPage() {
       <div className="login-main-card">
         {/* Left Side: Login Form */}
         <div className="login-left-side">
-          <div className="login-logo-area">
-            <ShieldCheck size={24} style={{ color: '#033F99' }} />
-            <span className="login-logo-text">Innovate Books</span>
+          <div className="login-logo-area" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img
+              src="/assets/synexos-logo.png"
+              alt="Synexos"
+              style={{ height: '28px', width: 'auto' }}
+            />
+            <span className="login-logo-text">Synexos</span>
           </div>
 
           <div className="login-form-container">
@@ -168,7 +172,7 @@ export default function LoginPage() {
           <div key={activeSlide} className="fade-in-content" style={{ width: '100%', maxWidth: '440px', margin: '0 auto' }}>
             <div className="smart-setup-pill">
               <ShieldCheck size={14} />
-              <span>Innovate Books Platform</span>
+              <span>Synexos Platform</span>
             </div>
 
             <div className="illustration-container">

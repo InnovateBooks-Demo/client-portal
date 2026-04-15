@@ -276,13 +276,13 @@ export default function ContractDashboard() {
 
             <div className="doc-body">
               <div className="doc-section-title">1. THE PARTIES</div>
-              <p>This bound Services Agreement (the "Agreement") is executed with legal intent between <strong>InnovateBook Services</strong> (the "Provider") and <strong>{data.contract.party_name}</strong> (the "Client"). Both signatories acknowledge the terms and conditions set forth in this digital bond.</p>
+              <p>This bound Services Agreement (the "Agreement") is executed with legal intent between <strong>Synexos Services</strong> (the "Provider") and <strong>{data.contract.party_name}</strong> (the "Client"). Both signatories acknowledge the terms and conditions set forth in this digital bond.</p>
 
               <div className="doc-section-title">2. VALUATION & TERMS</div>
               <p>The gross estimated value of the services stipulated in this record is <strong>₹{data.contract.total_value?.toLocaleString()}</strong>. The standard duration for settlement and reconciliation is defined as <strong>{data.contract.payment_terms}</strong> from the date of instrument issuance.</p>
 
               <div className="doc-section-title">3. SCOPE OF OBLIGATION</div>
-              <p>This instrument serves as the definitive legal framework for the onboarding phase and initial service deliveries. All electronic marks and timestamps recorded via the InnovateBook Portal are deemed authentic and enforceable under applicable digital statutes.</p>
+              <p>This instrument serves as the definitive legal framework for the onboarding phase and initial service deliveries. All electronic marks and timestamps recorded via the Synexos Portal are deemed authentic and enforceable under applicable digital statutes.</p>
 
               <div className="doc-section-title">4. COMPLIANCE & GOVERNANCE</div>
               <p>The Client warrants that all provided legal entity data, including tax registration and administrative contacts, are accurate and current. Any deviations from the stipulated documentation requirements may result in the suspension of system access.</p>
@@ -290,7 +290,7 @@ export default function ContractDashboard() {
 
             <div style={{ marginTop: 'auto', paddingTop: '4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', opacity: 0.6 }}>
               <div style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 600 }}>
-                InnovateBook Digital Trust Network<br />
+                Synexos Digital Trust Network<br />
                 Security Hash: {contract_id.split('-').pop()}...
               </div>
               <div style={{ width: '120px', height: '2px', background: '#F1F5F9' }} />
