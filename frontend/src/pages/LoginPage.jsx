@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, Loader2, ShieldCheck, ArrowRight, Briefcase, Zap, BarChart3 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import logo from '../assets/synexos-logo.png';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -104,7 +105,7 @@ export default function LoginPage() {
         <div className="login-left-side">
           <div className="login-logo-area" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img
-              src="/assets/synexos-logo.png"
+              src={logo}
               alt="Synexos"
               style={{ height: '28px', width: 'auto' }}
             />
