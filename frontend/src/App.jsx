@@ -11,6 +11,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import OnboardingEntry from './pages/OnboardingEntry.jsx';
 import OnboardingForm from './pages/OnboardingForm.jsx';
 import CompanyDetails from './pages/CompanyDetails.jsx';
+import ProposalRespond from './pages/ProposalRespond.jsx';
 import { ProfileProvider } from './context/ProfileContext';
 
 // Standard catch-all for genuinely invalid (non-expired) tokens
@@ -36,6 +37,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/portal/expired/:token" element={<ExpiredLinkPage />} />
             <Route path="/portal/invalid" element={<InvalidPortal />} />
+            <Route path="/proposal/respond/:proposalId" element={<ProposalRespond />} />
 
             {/* PROTECTED ROUTES - Sessions Managed by PortalGuard */}
             <Route element={<PortalGuard />}>
