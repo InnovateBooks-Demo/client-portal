@@ -6,6 +6,7 @@ import ExpiredLinkPage from './pages/ExpiredLinkPage.jsx';
 import DashboardLayout from './components/DashboardLayout.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import ContractDashboard from './pages/ContractDashboard.jsx';
+import ContractView from './pages/ContractView.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import OnboardingEntry from './pages/OnboardingEntry.jsx';
 import OnboardingForm from './pages/OnboardingForm.jsx';
@@ -41,7 +42,7 @@ function App() {
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/details" element={<CompanyDetails />} />
-                <Route path="/contracts/:contract_id" element={<ContractDashboard />} />
+                <Route path="/contracts/:contract_id" element={<ContractView />} />
               </Route>
             </Route>
 

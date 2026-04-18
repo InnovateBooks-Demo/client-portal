@@ -185,12 +185,12 @@ export default function ContractDashboard() {
     </div>
   );
 
-  if (error) return (
-    <div className="centered-message error-page">
-      <ShieldCheck size={64} style={{ color: 'var(--danger)', marginBottom: '1rem' }} />
-      <h2>Access Error</h2>
-      <p>{error}</p>
-      <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>Return to Dashboard</button>
+  if (!data?.contract?.generated_content) return (
+    <div className="centered-message">
+      <AlertCircle size={48} style={{ color: '#94A3B8', marginBottom: '1rem' }} />
+      <h2>No Contract Content</h2>
+      <p>The contract document is not available for preview.</p>
+      <button className="btn btn-primary" style={{ marginTop: '1rem' }} onClick={() => navigate('/dashboard')}>Return to Dashboard</button>
     </div>
   );
 
@@ -258,35 +258,11 @@ export default function ContractDashboard() {
               Official<br />Record
             </div>
 
-            <div className="doc-header">
-              <h2 style={{
-                color: '#111827',
-                margin: 0,
-                fontSize: '2.25rem',
-                fontWeight: 800,
-                fontFamily: "'Playfair Display', 'Georgia', serif",
-                letterSpacing: '-0.03em'
-              }}>
-                Service Agreement
-              </h2>
-              <p style={{ color: '#94A3B8', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', marginTop: '0.75rem', letterSpacing: '0.1em' }}>
-                Electronic Bond Reference: {contract_id}
-              </p>
-            </div>
-
-            <div className="doc-body">
-              <div className="doc-section-title">1. THE PARTIES</div>
-              <p>This bound Services Agreement (the "Agreement") is executed with legal intent between <strong>Synexos Services</strong> (the "Provider") and <strong>{data.contract.party_name}</strong> (the "Client"). Both signatories acknowledge the terms and conditions set forth in this digital bond.</p>
-
-              <div className="doc-section-title">2. VALUATION & TERMS</div>
-              <p>The gross estimated value of the services stipulated in this record is <strong>₹{data.contract.total_value?.toLocaleString()}</strong>. The standard duration for settlement and reconciliation is defined as <strong>{data.contract.payment_terms}</strong> from the date of instrument issuance.</p>
-
-              <div className="doc-section-title">3. SCOPE OF OBLIGATION</div>
-              <p>This instrument serves as the definitive legal framework for the onboarding phase and initial service deliveries. All electronic marks and timestamps recorded via the Synexos Portal are deemed authentic and enforceable under applicable digital statutes.</p>
-
-              <div className="doc-section-title">4. COMPLIANCE & GOVERNANCE</div>
-              <p>The Client warrants that all provided legal entity data, including tax registration and administrative contacts, are accurate and current. Any deviations from the stipulated documentation requirements may result in the suspension of system access.</p>
-            </div>
+            <div 
+              className="dynamic-contract-content"
+              style={{ flex: 1, minHeight: 0, overflowY: 'auto', color: '#1e293b' }}
+              dangerouslySetInnerHTML={{ __html: data.contract.generated_content }} 
+            />
 
             <div style={{ marginTop: 'auto', paddingTop: '4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', opacity: 0.6 }}>
               <div style={{ fontSize: '0.7rem', color: '#94A3B8', fontWeight: 600 }}>
@@ -315,20 +291,20 @@ export default function ContractDashboard() {
               <span>Requirement Tracker</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-              <div className={`requirement-item ${data.onboarding_status.company_info ? 'completed' : ''}`}>
-                {data.onboarding_status.company_info ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
+              <div className={`requirement-item ${onboarding_checklist.company_info ? 'completed' : ''}`}>
+                {onboarding_checklist.company_info ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
                 <span>Company Info</span>
               </div>
-              <div className={`requirement-item ${data.onboarding_status.contacts ? 'completed' : ''}`}>
-                {data.onboarding_status.contacts ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
+              <div className={`requirement-item ${onboarding_checklist.contacts ? 'completed' : ''}`}>
+                {onboarding_checklist.contacts ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
                 <span>Billing Contacts</span>
               </div>
-              <div className={`requirement-item ${data.onboarding_status.tax_info ? 'completed' : ''}`}>
-                {data.onboarding_status.tax_info ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
+              <div className={`requirement-item ${onboarding_checklist.tax_info ? 'completed' : ''}`}>
+                {onboarding_checklist.tax_info ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
                 <span>Tax Details</span>
               </div>
-              <div className={`requirement-item ${data.onboarding_status.documents ? 'completed' : ''}`}>
-                {data.onboarding_status.documents ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
+              <div className={`requirement-item ${onboarding_checklist.documents ? 'completed' : ''}`}>
+                {onboarding_checklist.documents ? <CheckCircle2 size={16} /> : <Clock size={16} opacity={0.4} />}
                 <span>Requirement Docs</span>
               </div>
             </div>
@@ -377,7 +353,7 @@ export default function ContractDashboard() {
               <button
                 className="login-submit-btn"
                 style={{ width: '100%', padding: '1.25rem', fontSize: '1rem' }}
-                disabled={!data.onboarding_status.company_info || !data.onboarding_status.tax_info}
+                disabled={!onboarding_checklist.company_info || !onboarding_checklist.tax_info}
                 onClick={handleSign}
               >
                 <span>Confirm Agreement</span>
