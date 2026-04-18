@@ -7,6 +7,10 @@ import DashboardLayout from './components/DashboardLayout.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import ContractDashboard from './pages/ContractDashboard.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import OnboardingEntry from './pages/OnboardingEntry.jsx';
+import OnboardingForm from './pages/OnboardingForm.jsx';
+import CompanyDetails from './pages/CompanyDetails.jsx';
+import { ProfileProvider } from './context/ProfileContext';
 
 // Standard catch-all for genuinely invalid (non-expired) tokens
 const InvalidPortal = () => (
@@ -22,25 +26,31 @@ const InvalidPortal = () => (
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Initial Entry Point - Token Handshake & Auth Wall */}
-          <Route path="/portal/:token" element={<PortalGuard />} />
-          <Route path="/portal/expired/:token" element={<ExpiredLinkPage />} />
-          <Route path="/portal/invalid" element={<InvalidPortal />} />
-          <Route path="/login" element={<LoginPage />} />
+      <ProfileProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* PUBLIC ROUTES - No Authentication Required */}
+            <Route path="/onboarding/:token" element={<OnboardingEntry />} />
+            <Route path="/onboarding/form" element={<OnboardingForm />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/portal/expired/:token" element={<ExpiredLinkPage />} />
+            <Route path="/portal/invalid" element={<InvalidPortal />} />
 
-          {/* Authenticated Dashboard Experience */}
-          <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/contracts/:contract_id" element={<ContractDashboard />} />
-          </Route>
+            {/* PROTECTED ROUTES - Sessions Managed by PortalGuard */}
+            <Route element={<PortalGuard />}>
+              <Route element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/details" element={<CompanyDetails />} />
+                <Route path="/contracts/:contract_id" element={<ContractDashboard />} />
+              </Route>
+            </Route>
 
-          {/* Fallback */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Catch-all Fallback */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </ProfileProvider>
     </AuthProvider>
   );
 }

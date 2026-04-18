@@ -1,14 +1,16 @@
-import React, { useContext, useState, useEffect } from 'react';
-import { PortalContext } from './PortalGuard.jsx';
-import { Save, CheckCircle2, AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Save, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export default function OnboardingForm() {
-  const { data, token, refreshData, accessToken } = useContext(PortalContext);
+  const { token } = useParams();
+  const { accessToken } = useAuth();
   const navigate = useNavigate();
   
+  const [data, setData] = useState(null);
   const [formData, setFormData] = useState({
     legal_name: '',
     address: '',
@@ -17,53 +19,76 @@ export default function OnboardingForm() {
     admin_contact: ''
   });
   
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
-    // Populate existing data
-    if (data?.onboarding) {
-      setFormData(prev => ({
-        ...prev,
-        legal_name: data.onboarding.legal_name || data.lead?.company_name || '',
-        address: data.onboarding.address || '',
-        gst: data.onboarding.gst || '',
-        billing_contact: data.onboarding.billing_contact || data.lead?.contact_email || '',
-        admin_contact: data.onboarding.admin_contact || ''
-      }));
-    } else if (data?.lead) {
-       setFormData(prev => ({
-         ...prev,
-         legal_name: data.lead.company_name || '',
-         billing_contact: data.lead.contact_email || ''
-       }));
-    }
-  }, [data]);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Authenticated fetch: Resolve pending lead via session
+        const res = await fetch(`${API_BASE}/api/client-portal/onboarding/me`, {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        const json = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(json.detail || "No active onboarding found");
+        }
+        
+        setData(json);
+        // Pre-fill from lead info if available
+        setFormData(prev => ({
+          ...prev,
+          legal_name: json.company_name || prev.legal_name,
+          billing_contact: json.email || prev.billing_contact
+        }));
+      } catch (err) {
+        setToast({ type: 'error', text: err.message });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (accessToken) fetchData();
+  }, [accessToken]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = async (e) => {
+  const handleNext = async (e) => {
     e?.preventDefault();
+    if (!formData.legal_name || !formData.address || !formData.gst || !formData.billing_contact) {
+      setToast({ type: 'error', text: "Please fill all required fields" });
+      return;
+    }
+
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/api/client-portal/${token}/onboarding`, {
-        method: 'PUT',
+      const res = await fetch(`${API_BASE}/api/client-portal/onboarding/me/submit`, {
+        method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${accessToken}`
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          data: formData
+        })
       });
       
-      if (!res.ok) throw new Error("Failed to save data");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.detail || "Failed to submit onboarding");
       
-      setToast({ type: 'success', text: "Onboarding details saved successfully" });
-      await refreshData();
+      setToast({ type: 'success', text: "Onboarding complete! Generating your contract..." });
       
-      setTimeout(() => setToast(null), 3000);
+      // Atomic Redirect: Hand off to the newly created contract
+      setTimeout(() => {
+        navigate(`/contracts/${json.contract_id}`);
+      }, 1500);
+      
     } catch (err) {
       setToast({ type: 'error', text: err.message });
       setTimeout(() => setToast(null), 3000);
@@ -72,18 +97,6 @@ export default function OnboardingForm() {
     }
   };
 
-  const isFormValid = formData.legal_name && formData.address && formData.gst && formData.billing_contact;
-
-  const handleNext = async () => {
-    await handleSave();
-    if (isFormValid) {
-       navigate('/portal/sign');
-    } else {
-       setToast({ type: 'error', text: "Please fill all required fields before proceeding." });
-       setTimeout(() => setToast(null), 3000);
-    }
-  }
-
   return (
     <div className="glass-panel">
       <div style={{marginBottom: '2rem'}}>
@@ -91,7 +104,7 @@ export default function OnboardingForm() {
         <p style={{margin: 0}}>Please complete this form to set up your account.</p>
       </div>
 
-      <form onSubmit={handleSave}>
+      <form onSubmit={handleNext}>
         <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem'}}>
           
           <div className="form-group" style={{gridColumn: '1 / -1'}}>

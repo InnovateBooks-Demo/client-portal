@@ -41,8 +41,14 @@ export default function LoginPage() {
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % slides.length);
-    }, 1500);
+    }, 4500); // Slower carousel
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (queryParams.get('from') === 'onboarding') {
+      setError('success:Account created successfully! Please sign in to finalize your setup.');
+    }
   }, []);
 
   const handleSubmit = async (e) => {
@@ -64,7 +70,16 @@ export default function LoginPage() {
       }
 
       login(json.access_token);
-      navigate('/dashboard');
+      
+      const redirectPath = queryParams.get('redirect');
+      if (redirectPath) {
+        navigate(redirectPath);
+      } else if (json.user?.contract_id) {
+        navigate(`/contracts/${json.user.contract_id}`);
+      } else {
+        // Fallback to dashboard (or generic state)
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err.message);
     } finally {

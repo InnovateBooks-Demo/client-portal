@@ -1,10 +1,10 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Settings, LogOut, User, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, LogOut, User, ShieldCheck, Building2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function DashboardLayout() {
-  const { user, logout, loading, isAuthenticated } = useAuth();
+  const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
 
   if (loading) {
@@ -12,17 +12,6 @@ export default function DashboardLayout() {
       <div className="centered-message">
         <div className="spinner" style={{ borderColor: 'rgba(59,130,246,0.3)', borderTopColor: '#3b82f6', width: '40px', height: '40px' }} />
         <p style={{ marginTop: '1rem' }}>Loading your secure environment...</p>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="centered-message error-page">
-        <ShieldCheck size={64} style={{ color: 'var(--danger)', marginBottom: '1rem' }} />
-        <h2>Session Required</h2>
-        <p>Please sign in to access your secure portal.</p>
-        <button className="btn btn-primary" onClick={() => navigate('/login')}>Sign In</button>
       </div>
     );
   }
@@ -50,6 +39,15 @@ export default function DashboardLayout() {
             >
               <div className="step-icon"><LayoutDashboard size={18} /></div>
               <span>My Dashboard</span>
+            </NavLink>
+
+            <NavLink
+              to="/details"
+              className={({ isActive }) => `step-item ${isActive ? 'active' : ''}`}
+              style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+            >
+              <div className="step-icon"><Building2 size={18} /></div>
+              <span>Company Details</span>
             </NavLink>
 
             <div style={{ marginTop: '2.5rem', marginBottom: '0.75rem', padding: '0 1rem' }}>
