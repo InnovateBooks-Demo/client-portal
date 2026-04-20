@@ -4,7 +4,7 @@ import {
   Bell, AlertTriangle, CheckCircle2, Circle
 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 
 const EVENT_ICONS = {
   contract_sent: { icon: Send, color: '#3b82f6', label: 'Contract Sent' },

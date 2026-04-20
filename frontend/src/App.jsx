@@ -12,7 +12,9 @@ import OnboardingEntry from './pages/OnboardingEntry.jsx';
 import OnboardingForm from './pages/OnboardingForm.jsx';
 import CompanyDetails from './pages/CompanyDetails.jsx';
 import ProposalRespond from './pages/ProposalRespond.jsx';
+import ContractClientPage from './pages/ContractClientPage.jsx';
 import { ProfileProvider } from './context/ProfileContext';
+import { Toaster } from 'react-hot-toast';
 
 // Standard catch-all for genuinely invalid (non-expired) tokens
 const InvalidPortal = () => (
@@ -29,6 +31,7 @@ function App() {
   return (
     <AuthProvider>
       <ProfileProvider>
+        <Toaster position="top-right" />
         <BrowserRouter>
           <Routes>
             {/* PUBLIC ROUTES - No Authentication Required */}
@@ -38,11 +41,13 @@ function App() {
             <Route path="/portal/expired/:token" element={<ExpiredLinkPage />} />
             <Route path="/portal/invalid" element={<InvalidPortal />} />
             <Route path="/proposal/respond/:proposalId" element={<ProposalRespond />} />
+            <Route path="/contract/:token" element={<ContractClientPage />} />
 
             {/* PROTECTED ROUTES - Sessions Managed by PortalGuard */}
             <Route element={<PortalGuard />}>
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/contracts" element={<Dashboard />} />
                 <Route path="/details" element={<CompanyDetails />} />
                 <Route path="/contracts/:contract_id" element={<ContractView />} />
               </Route>

@@ -4,7 +4,7 @@ import { FileText, Clock, CheckCircle2, ChevronRight, Search, Filter, ArrowRight
 import { useAuth } from '../context/AuthContext';
 import { useProfile } from '../context/ProfileContext';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 
 export default function Dashboard() {
   const { accessToken, user } = useAuth();
@@ -23,8 +23,20 @@ export default function Dashboard() {
       const res = await fetch(`${API_BASE}/api/client-portal/contracts`, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       });
-      const json = await res.json();
-      if (json.success) {
+
+      let json = null;
+      try {
+        json = await res.json();
+      } catch (e) {
+        json = null;
+      }
+
+      if (!res.ok) {
+        console.error("Fetch failed", res.status);
+        return;
+      }
+
+      if (json?.success) {
         setContracts(json.contracts);
       }
     } catch (err) {
@@ -36,11 +48,11 @@ export default function Dashboard() {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      'SENT': { bg: '#E0EEFF', color: '#033F99', icon: <Clock size={14} />, label: 'Pending Review' },
-      'SIGNED': { bg: '#DCFCE7', color: '#15803D', icon: <CheckCircle2 size={14} />, label: 'Signed' },
-      'DRAFT': { bg: '#F1F5F9', color: '#475569', icon: <FileText size={14} />, label: 'Draft' }
+      'sent': { bg: '#E0EEFF', color: '#033F99', icon: <Clock size={14} />, label: 'Pending Review' },
+      'signed': { bg: '#DCFCE7', color: '#15803D', icon: <CheckCircle2 size={14} />, label: 'Signed' },
+      'draft': { bg: '#F1F5F9', color: '#475569', icon: <FileText size={14} />, label: 'Draft' }
     };
-    const s = statusMap[status] || statusMap['DRAFT'];
+    const s = statusMap[status] || statusMap['draft'];
     return (
       <div style={{
         display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
@@ -53,8 +65,7 @@ export default function Dashboard() {
   };
 
   const filteredContracts = contracts.filter(c =>
-    c.contract_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.organization_name.toLowerCase().includes(searchTerm.toLowerCase())
+    (c.contract_id || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -72,178 +83,77 @@ export default function Dashboard() {
         <p style={{ fontSize: '1.05rem', color: '#64748B' }}>Review and manage your organization's secure agreements.</p>
       </div>
 
-      {/* 🔥 URGENT: Changes Requested Alert */}
-      {profile && profile.review_status === "changes_requested" && (
-        <div style={{
-          background: '#FFF7ED',
-          border: '2px solid #FB923C',
-          borderRadius: '24px',
-          padding: '2.5rem',
-          marginBottom: '3rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxShadow: '0 10px 15px -3px rgba(251, 146, 60, 0.1)',
-          animation: 'pulse 2s infinite ease-in-out'
-        }}>
-          <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-            <div style={{ 
-              width: '56px', height: '56px', borderRadius: '16px', background: '#FFEDD5',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EA580C',
-              shrink: 0
+      {/* --- DASHBOARD BANNERS --- */}
+      {profile && (
+        <>
+          {profile.review_status === "changes_requested" ? (
+             <div style={{
+              background: '#FFF7ED', border: '2px solid #FB923C', borderRadius: '24px', padding: '2.5rem', marginBottom: '3rem',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 10px 15px -3px rgba(251, 146, 60, 0.1)'
             }}>
-              <RefreshCcw size={28} />
+              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#FFEDD5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EA580C' }}>
+                  <RefreshCcw size={28} />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#9A3412', marginBottom: '0.5rem' }}>Action Required</h2>
+                  <p style={{ color: '#C2410C', fontWeight: 600 }}>Correction needed: "{profile.review_notes || "Please check your documents."}"</p>
+                </div>
+              </div>
+              <button className="btn" onClick={() => navigate('/onboarding/form')} style={{ background: '#EA580C', color: 'white', padding: '1rem 2rem', borderRadius: '12px', fontWeight: 800 }}>
+                Update Now
+              </button>
             </div>
-            <div>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#9A3412', marginBottom: '0.5rem', letterSpacing: '-0.01em' }}>
-                Action Required: Correction Needed
-              </h2>
-              <p style={{ fontSize: '1rem', color: '#C2410C', fontWeight: 600, maxWidth: '600px', margin: 0, lineHeight: 1.5 }}>
-                 The admin has requested changes to your profile: 
-                 <span style={{ display: 'block', marginTop: '0.5rem', padding: '0.75rem 1rem', background: 'white', borderRadius: '10px', fontStyle: 'italic', fontWeight: 500, color: '#475569', border: '1px solid #FED7AA' }}>
-                   "{profile.review_notes || "Please review your submitted data and documents for accuracy."}"
-                 </span>
-              </p>
-            </div>
-          </div>
-          <button 
-            className="btn"
-            onClick={() => navigate('/onboarding/form')}
-            style={{
-              background: '#EA580C',
-              color: 'white',
-              padding: '1rem 2rem',
-              borderRadius: '14px',
-              fontWeight: 800,
-              fontSize: '1rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              border: 'none',
-              boxShadow: '0 4px 6px -1px rgba(234, 88, 12, 0.2)',
-              transition: 'all 0.2s ease',
-              whiteSpace: 'nowrap'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.background = '#C2410C';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.background = '#EA580C';
-            }}
-          >
-            Update Profile <ArrowRight size={20} />
-          </button>
-        </div>
-      )}
-
-      {user?.pending_onboarding && profile?.review_status !== "changes_requested" && (
-        <div style={{
-          background: 'linear-gradient(135deg, #033F99 0%, #1E40AF 100%)',
-          borderRadius: '24px',
-          padding: '2.5rem',
-          color: 'white',
-          marginBottom: '3rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxShadow: '0 20px 25px -5px rgba(30, 64, 175, 0.15)',
-          position: 'relative',
-          overflow: 'hidden'
-        }}>
-          {/* Decorative element */}
-          <div style={{
-            position: 'absolute',
-            right: '-10%',
-            top: '-20%',
-            width: '300px',
-            height: '300px',
-            background: 'rgba(255,255,255,0.05)',
-            borderRadius: '50%',
-            pointerEvents: 'none'
-          }} />
-
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.75rem', letterSpacing: '-0.02em' }}>
-              Finalize Your Setup
-            </h2>
-            <p style={{ fontSize: '1.1rem', opacity: 0.9, marginBottom: 0, maxWidth: '500px', fontWeight: 500 }}>
-              Complete your organization's legal and tax profile to unlock your pending contracts and secure workspace modules.
-            </p>
-          </div>
-
-          <button 
-            className="btn"
-            onClick={() => navigate('/onboarding/form')}
-            style={{
-              background: 'white',
-              color: '#033F99',
-              padding: '1rem 2rem',
-              borderRadius: '14px',
-              fontWeight: 800,
-              fontSize: '1rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              border: 'none',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-              transition: 'transform 0.2s ease',
-              position: 'relative',
-              zIndex: 1
-            }}
-            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-          >
-            Finish Onboarding <ArrowRight size={20} />
-          </button>
-        </div>
-      )}
-
-      {/* Profile Completion Warning */}
-      {profile && profile.overall_completion < 100 && (
-        <div style={{
-          background: '#FFFBEB',
-          border: '1px solid #FEF3C7',
-          borderRadius: '18px',
-          padding: '1.25rem 2rem',
-          marginBottom: '3rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '10px', background: '#FEF3C7', 
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D97706' 
+          ) : profile.profile_status === "submitted" ? (
+            <div style={{
+              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', borderRadius: '24px', padding: '2.5rem', color: 'white', marginBottom: '3rem',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
             }}>
-              <AlertTriangle size={22} />
+              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Clock size={28} color="#94A3B8" />
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.25rem' }}>Profile Under Review</h2>
+                  <p style={{ opacity: 0.8 }}>Our compliance team is verifying your documents.</p>
+                </div>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.75rem 1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', fontWeight: 600 }}>
+                Pending Verification
+              </div>
             </div>
-            <div>
-              <h4 style={{ margin: 0, color: '#92400E', fontWeight: 700, fontSize: '1rem' }}>Your company details are incomplete</h4>
-              <p style={{ margin: 0, color: '#B45309', fontSize: '0.9rem', fontWeight: 500 }}>Please complete your profile to ensure seamless contract processing.</p>
+          ) : profile.profile_status === "approved" ? (
+            <div style={{
+              background: 'linear-gradient(135deg, #065F46 0%, #059669 100%)', borderRadius: '24px', padding: '2rem', color: 'white', marginBottom: '3rem',
+              display: 'flex', alignItems: 'center', gap: '1.5rem'
+            }}>
+              <CheckCircle2 size={32} />
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Verified Partner</h2>
+                <p style={{ opacity: 0.9 }}>Your organization is fully verified.</p>
+              </div>
             </div>
-          </div>
-          <button 
-            onClick={() => navigate('/details')}
-            style={{
-              background: '#D97706',
-              color: 'white',
-              padding: '0.75rem 1.5rem',
-              borderRadius: '12px',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'background 0.2s'
-            }}
-            onMouseOver={(e) => e.currentTarget.style.background = '#B45309'}
-            onMouseOut={(e) => e.currentTarget.style.background = '#D97706'}
-          >
-            Complete Now
-          </button>
-        </div>
+          ) : (user?.pending_onboarding) && (
+            <div style={{
+              background: 'linear-gradient(135deg, #033F99 0%, #1E40AF 100%)', borderRadius: '24px', padding: '2.5rem', color: 'white', marginBottom: '3rem',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                <AlertTriangle size={32} />
+                <div>
+                  <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Complete Your Setup</h2>
+                  <p style={{ opacity: 0.9 }}>Provide your organization details to unlock workspace features.</p>
+                </div>
+              </div>
+              <button 
+                className="btn" onClick={() => navigate('/onboarding/form')}
+                style={{ background: 'white', color: '#033F99', padding: '1rem 2rem', borderRadius: '12px', fontWeight: 800 }}
+              >
+                Start Now
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <div style={{
@@ -303,7 +213,7 @@ export default function Dashboard() {
                 {c.contract_id}
               </h3>
               <p style={{ fontSize: '0.9rem', marginBottom: 0, fontWeight: 500, color: '#64748B' }}>
-                {c.organization_name}
+                v{c.contract_version || 1}
               </p>
             </div>
 

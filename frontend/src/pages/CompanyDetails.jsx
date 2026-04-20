@@ -4,7 +4,7 @@ import { useProfile } from '../context/ProfileContext';
 import { useAuth } from '../context/AuthContext';
 import { CheckCircle2, AlertCircle, Loader2, Upload, File as FileIcon, X, ChevronRight, ChevronLeft, Plus, Trash2, RefreshCcw } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 
 export default function CompanyDetails() {
   const { profile, loading, refreshProfile } = useProfile();

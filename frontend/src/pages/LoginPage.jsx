@@ -4,7 +4,7 @@ import { Lock, Mail, Loader2, ShieldCheck, ArrowRight, Briefcase, Zap, BarChart3
 import { useAuth } from '../context/AuthContext';
 import logo from '../assets/synexos-logo.png';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 
 const slides = [
   {
