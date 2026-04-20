@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { PortalContext } from './PortalGuard.jsx';
 import { PenTool, CheckCircle2, AlertCircle, ShieldCheck, User, Mail, Landmark, Phone } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 
 export default function SignPage() {
   const { data, token, refreshData, accessToken } = useContext(PortalContext);

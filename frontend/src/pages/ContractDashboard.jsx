@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { useDebounce } from '../hooks/useDebounce';
 import AuditTimeline from '../components/AuditTimeline';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 
 export default function ContractDashboard() {
   const { contract_id } = useParams();

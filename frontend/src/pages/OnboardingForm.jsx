@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Save, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 
 export default function OnboardingForm() {
   const { token } = useParams();
@@ -31,10 +31,16 @@ export default function OnboardingForm() {
         const res = await fetch(`${API_BASE}/api/client-portal/onboarding/me`, {
             headers: { 'Authorization': `Bearer ${accessToken}` }
         });
-        const json = await res.json();
+        
+        let json = null;
+        try {
+          json = await res.json();
+        } catch (e) {
+          json = null;
+        }
         
         if (!res.ok) {
-          throw new Error(json.detail || "No active onboarding found");
+          throw new Error(json?.detail || `No active onboarding found: ${res.status}`);
         }
         
         setData(json);
@@ -79,8 +85,16 @@ export default function OnboardingForm() {
         })
       });
       
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.detail || "Failed to submit onboarding");
+      let json = null;
+      try {
+        json = await res.json();
+      } catch (e) {
+        json = null;
+      }
+
+      if (!res.ok) {
+        throw new Error(json?.detail || `Failed to submit onboarding: ${res.status}`);
+      }
       
       setToast({ type: 'success', text: "Onboarding complete! Generating your contract..." });
       

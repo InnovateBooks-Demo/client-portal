@@ -24,7 +24,7 @@ const ProposalRespond = () => {
       }
 
       try {
-        const API_URL = import.meta.env.VITE_API_URL || "";
+        const API_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "";
         const response = await fetch(
           `${API_URL}/api/proposals/proposal/respond/${proposalId}?action=${action}`
         );

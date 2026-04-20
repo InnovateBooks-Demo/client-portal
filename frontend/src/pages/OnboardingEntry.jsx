@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Lock, Mail, Key, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 
 export default function OnboardingEntry() {
   const { token } = useParams();
