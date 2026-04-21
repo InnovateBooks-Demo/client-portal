@@ -7,11 +7,11 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_U
 const ContractClientPage = () => {
     const { token } = useParams();
     const navigate = useNavigate();
-    
+
     const [contract, setContract] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
+
     const [clientName, setClientName] = useState("");
     const [accepted, setAccepted] = useState(false);
     const [signing, setSigning] = useState(false);
@@ -21,7 +21,7 @@ const ContractClientPage = () => {
         const fetchContract = async () => {
             try {
                 const res = await fetch(`${API_BASE}/api/commerce/workflow/client-portal/contract/${token}`);
-                
+
                 let data = null;
                 try {
                     data = await res.json();
@@ -54,7 +54,7 @@ const ContractClientPage = () => {
 
     const handleSign = async () => {
         if (!accepted || !clientName.trim()) return;
-        
+
         setSigning(true);
         try {
             const res = await fetch(`${API_BASE}/api/commerce/workflow/client-portal/contract/${token}/sign`, {
@@ -122,7 +122,7 @@ const ContractClientPage = () => {
     return (
         <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6">
             <div className="max-w-4xl mx-auto space-y-8">
-                
+
                 {/* HEADER */}
                 <div className="flex flex-col items-center text-center space-y-4">
                     <div className="px-4 py-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-full text-[10px] font-black uppercase tracking-widest">
@@ -138,20 +138,20 @@ const ContractClientPage = () => {
 
                 {/* DOCUMENT PREVIEW */}
                 <div className="bg-white p-8 md:p-12 shadow-2xl rounded-3xl border border-slate-200">
-                    <div 
+                    <div
                         className="prose prose-slate max-w-none text-sm leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: contract.generated_content }} 
+                        dangerouslySetInnerHTML={{ __html: contract.generated_content }}
                     />
                 </div>
 
                 {/* SIGNATURE BLOCK */}
                 <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 mt-8">
                     <h3 className="text-lg font-black text-slate-900 uppercase tracking-widest mb-6">Digital Signature</h3>
-                    
+
                     <div className="space-y-6">
                         <div>
                             <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Legal Name</label>
-                            <input 
+                            <input
                                 type="text"
                                 value={clientName}
                                 onChange={(e) => setClientName(e.target.value)}
@@ -161,7 +161,7 @@ const ContractClientPage = () => {
                         </div>
 
                         <label className="flex items-start gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer">
-                            <input 
+                            <input
                                 type="checkbox"
                                 checked={accepted}
                                 onChange={(e) => setAccepted(e.target.checked)}
@@ -172,7 +172,7 @@ const ContractClientPage = () => {
                             </span>
                         </label>
 
-                        <button 
+                        <button
                             onClick={handleSign}
                             disabled={!accepted || !clientName.trim() || signing}
                             className="w-full py-4 bg-slate-900 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:translate-y-0 disabled:shadow-none flex justify-center items-center gap-2"
