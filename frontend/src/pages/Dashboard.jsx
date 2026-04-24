@@ -76,6 +76,15 @@ export default function Dashboard() {
     );
   }
 
+  console.log("clientProfile:", profile);
+  console.log("overall_completion:", profile?.overall_completion);
+
+  const isOnboardingComplete =
+    profile && profile.overall_completion === 80;
+
+  const isOnboardingIncomplete =
+    !profile || profile.overall_completion < 80;
+
   return (
     <div style={{ animation: 'fadeIn 0.5s ease forwards' }}>
       <div style={{ marginBottom: '3.5rem' }}>
@@ -84,77 +93,41 @@ export default function Dashboard() {
       </div>
 
       {/* --- DASHBOARD BANNERS --- */}
-      {profile && (
-        <>
-          {profile.review_status === "changes_requested" ? (
-             <div style={{
-              background: '#FFF7ED', border: '2px solid #FB923C', borderRadius: '24px', padding: '2.5rem', marginBottom: '3rem',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 10px 15px -3px rgba(251, 146, 60, 0.1)'
-            }}>
-              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#FFEDD5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EA580C' }}>
-                  <RefreshCcw size={28} />
-                </div>
-                <div>
-                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#9A3412', marginBottom: '0.5rem' }}>Action Required</h2>
-                  <p style={{ color: '#C2410C', fontWeight: 600 }}>Correction needed: "{profile.review_notes || "Please check your documents."}"</p>
-                </div>
-              </div>
-              <button className="btn" onClick={() => navigate('/onboarding/form')} style={{ background: '#EA580C', color: 'white', padding: '1rem 2rem', borderRadius: '12px', fontWeight: 800 }}>
-                Update Now
-              </button>
+      <div style={{ marginBottom: '3rem' }}>
+        {isOnboardingIncomplete && (
+          <div style={{
+            background: '#FFFBEB', border: '1px solid #FEF3C7', borderRadius: '16px', padding: '1.5rem',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem'
+          }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <AlertTriangle size={24} color="#D97706" />
+              <span style={{ fontWeight: 700, color: '#92400E' }}>Please complete your company details to proceed with contracts</span>
             </div>
-          ) : profile.profile_status === "submitted" ? (
-            <div style={{
-              background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)', borderRadius: '24px', padding: '2.5rem', color: 'white', marginBottom: '3rem',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-            }}>
-              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Clock size={28} color="#94A3B8" />
-                </div>
-                <div>
-                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.25rem' }}>Profile Under Review</h2>
-                  <p style={{ opacity: 0.8 }}>Our compliance team is verifying your documents.</p>
-                </div>
-              </div>
-              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.75rem 1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', fontWeight: 600 }}>
-                Pending Verification
-              </div>
-            </div>
-          ) : profile.profile_status === "approved" ? (
-            <div style={{
-              background: 'linear-gradient(135deg, #065F46 0%, #059669 100%)', borderRadius: '24px', padding: '2rem', color: 'white', marginBottom: '3rem',
-              display: 'flex', alignItems: 'center', gap: '1.5rem'
-            }}>
-              <CheckCircle2 size={32} />
-              <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Verified Partner</h2>
-                <p style={{ opacity: 0.9 }}>Your organization is fully verified.</p>
-              </div>
-            </div>
-          ) : (user?.pending_onboarding) && (
-            <div style={{
-              background: 'linear-gradient(135deg, #033F99 0%, #1E40AF 100%)', borderRadius: '24px', padding: '2.5rem', color: 'white', marginBottom: '3rem',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-            }}>
-              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                <AlertTriangle size={32} />
-                <div>
-                  <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Complete Your Setup</h2>
-                  <p style={{ opacity: 0.9 }}>Provide your organization details to unlock workspace features.</p>
-                </div>
-              </div>
-              <button 
-                className="btn" onClick={() => navigate('/onboarding/form')}
-                style={{ background: 'white', color: '#033F99', padding: '1rem 2rem', borderRadius: '12px', fontWeight: 800 }}
-              >
-                Start Now
-              </button>
-            </div>
-          )}
-        </>
-      )}
+            <button
+              className="btn"
+              onClick={() => navigate('/details')}
+              style={{ background: '#D97706', color: 'white', padding: '0.5rem 1.25rem', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 800 }}
+            >
+              Complete Details
+            </button>
+          </div>
+        )}
+
+        {isOnboardingComplete && (
+          <div style={{
+            background: '#F0FDF4', border: '1px solid #DCFCE7', borderRadius: '16px', padding: '1.5rem',
+            display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem'
+          }}>
+            <CheckCircle2 size={24} color="#16A34A" />
+            <span style={{ fontWeight: 700, color: '#166534' }}>Company details completed successfully</span>
+          </div>
+        )}
+
+        {/* TEMP debug UI */}
+        {/* <div style={{ padding: '0.5rem', background: '#F8FAFC', borderRadius: '8px', fontSize: '10px', color: '#94A3B8', fontFamily: 'monospace', opacity: 0.7 }}>
+          Debug: {JSON.stringify(profile)}
+        </div> */}
+      </div>
 
       <div style={{
         display: 'flex', gap: '1rem', marginBottom: '3rem',
@@ -167,9 +140,9 @@ export default function Dashboard() {
             type="text"
             placeholder="Search contracts..."
             className="form-control"
-            style={{ 
-              paddingLeft: '3rem', 
-              marginBottom: 0, 
+            style={{
+              paddingLeft: '3rem',
+              marginBottom: 0,
               background: '#F8FAFC',
               border: '1px solid #E5E7EB',
               height: '48px'
@@ -178,7 +151,7 @@ export default function Dashboard() {
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="btn" style={{ 
+        <button className="btn" style={{
           display: 'inline-flex', gap: '0.5rem', alignItems: 'center',
           background: 'white', border: '1px solid #E5E7EB', color: '#475569',
           height: '48px', padding: '0 1.25rem'
@@ -231,9 +204,9 @@ export default function Dashboard() {
           </div>
         )) : (
           <div className="dashboard-card" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '5rem 2rem', background: 'white' }}>
-            <div style={{ 
-              width: '80px', height: '80px', borderRadius: '50%', background: '#F8FAFC', 
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' 
+            <div style={{
+              width: '80px', height: '80px', borderRadius: '50%', background: '#F8FAFC',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem'
             }}>
               <FileText size={40} style={{ color: '#CBD5E1' }} />
             </div>

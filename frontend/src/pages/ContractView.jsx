@@ -12,11 +12,15 @@ export default function ContractView() {
   const [data, setData] = useState(null);
   const [signing, setSigning] = useState(false);
 
+  // Extract token from URL (Client Portal Link)
+  const queryToken = new URLSearchParams(window.location.search).get("token");
+  const effectiveToken = queryToken || accessToken;
+
   const fetchContract = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/client-portal/contracts/${contract_id}`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${effectiveToken}`
         }
       });
 
@@ -30,26 +34,35 @@ export default function ContractView() {
   };
 
   useEffect(() => {
-    if (accessToken && contract_id) {
+    if (effectiveToken && contract_id) {
       fetchContract();
     }
-  }, [contract_id, accessToken]);
+  }, [contract_id, effectiveToken]);
 
   const handleSign = async () => {
+    if (!contract_id || !effectiveToken) {
+      toast.error("Invalid access session");
+      return;
+    }
+
     setSigning(true);
     try {
       const res = await fetch(`${API_BASE}/api/client-portal/contracts/sign`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${effectiveToken}`
         },
-        body: JSON.stringify({ contract_id })
+        body: JSON.stringify({ 
+          contract_id,
+          token: queryToken // Explicitly send token in body if present
+        })
       });
 
       const json = await res.json();
       if (res.ok) {
         toast.success("Agreement signed successfully!");
+        // Refresh data to update status to 'signed' and hide button
         await fetchContract();
       } else {
         toast.error(json.detail || "Failed to sign contract");
@@ -65,7 +78,7 @@ export default function ContractView() {
     const tid = toast.loading("Generating PDF...");
     try {
       const res = await fetch(`${API_BASE}/api/client-portal/contracts/${contract_id}/pdf`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
+        headers: { Authorization: `Bearer ${effectiveToken}` }
       });
       if (res.ok) {
         const blob = await res.blob();
