@@ -114,12 +114,23 @@ export default function ContractView() {
   const html = contract?.generated_content || "";
 
   const hydrateContractSignature = (html, contract) => {
-    if (!html || !contract || contract.status !== 'signed') return html;
+    if (!html || !contract) return html;
     
+    // Client fields
     const { signer_name, signature_text, signed_at } = contract;
-    if (!signer_name && !signature_text && !signed_at) return html;
+    // Provider fields
+    const { provider_signer_name, provider_signature_text, provider_signed_at } = contract;
+
+    console.log("[ClientPortal Hydration] Provider Data:", { provider_signer_name, provider_signature_text, provider_signed_at });
+    console.log("[ClientPortal Hydration] Client Data:", { signer_name, signature_text, signed_at });
+
+    if (
+      !signer_name && !signature_text && !signed_at &&
+      !provider_signer_name && !provider_signature_text && !provider_signed_at
+    ) return html;
 
     const signedDate = signed_at ? new Date(signed_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : "";
+    const provSignedDate = provider_signed_at ? new Date(provider_signed_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : "";
 
     try {
       const parser = new DOMParser();
@@ -129,7 +140,13 @@ export default function ContractView() {
       const signerNameEl = doc.getElementById('client-signer-name');
       const signedDateEl = doc.getElementById('client-signed-date');
 
-      // --- CASE A: MODERN TEMPLATE (IDs PRESENT) ---
+      const provSigTextEl = doc.getElementById('provider-signature-text');
+      const provSignerNameEl = doc.getElementById('provider-signer-name');
+      const provSignedDateEl = doc.getElementById('provider-signed-date');
+
+      let changed = false;
+
+      // --- CLIENT SIDE ---
       if (sigTextEl || signerNameEl || signedDateEl) {
         if (sigTextEl && signature_text) {
           sigTextEl.textContent = signature_text;
@@ -138,45 +155,57 @@ export default function ContractView() {
           sigTextEl.style.color = "#033F99";
           sigTextEl.style.marginBottom = "-12px";
           sigTextEl.style.transform = "rotate(-2deg)";
+          changed = true;
         }
-        if (signerNameEl && signer_name) signerNameEl.textContent = signer_name;
-        if (signedDateEl && signedDate) signedDateEl.textContent = `Date: ${signedDate}`;
+        if (signerNameEl && signer_name) { signerNameEl.textContent = signer_name; changed = true; }
+        if (signedDateEl && signedDate) { signedDateEl.textContent = `Date: ${signedDate}`; changed = true; }
+      }
 
+      // --- PROVIDER SIDE ---
+      if (provSigTextEl || provSignerNameEl || provSignedDateEl) {
+        if (provSigTextEl && provider_signature_text) {
+          provSigTextEl.textContent = provider_signature_text;
+          provSigTextEl.style.fontFamily = "'Dancing Script', cursive";
+          provSigTextEl.style.fontSize = "22pt";
+          provSigTextEl.style.color = "#033F99";
+          provSigTextEl.style.marginBottom = "-12px";
+          provSigTextEl.style.transform = "rotate(-2deg)";
+          changed = true;
+        }
+        if (provSignerNameEl && provider_signer_name) { provSignerNameEl.textContent = provider_signer_name; changed = true; }
+        if (provSignedDateEl && provSignedDate) { provSignedDateEl.textContent = `Date: ${provSignedDate}`; changed = true; }
+      }
+
+      if (changed) {
         // Inject Font if not present in the doc
         if (!html.includes('Dancing+Script')) {
           const style = doc.createElement('style');
           style.textContent = "@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');";
           doc.head.appendChild(style);
         }
-        return doc.documentElement.innerHTML;
+        return doc.body.innerHTML;
       }
 
       // --- CASE B: LEGACY TEMPLATE (NO IDs) ---
-      // Fallback: Structural replacement on the SECOND sig-line block
+      // (Legacy fallback usually only for client side)
       let hydratedHtml = html;
       const parts = hydratedHtml.split('<div class="sig-line">');
-      
       if (parts.length >= 3) {
         let clientBlock = parts[2];
-        
         if (signature_text) {
           const sigTextHtml = `<div style="font-family:'Dancing Script', cursive; font-size:22pt; color:#033F99; margin-bottom:-12px; transform:rotate(-2deg);">${signature_text}</div>`;
           clientBlock = clientBlock.replace("Authorised Signatory", `${sigTextHtml}Authorised Signatory`);
         }
-        
         if (signer_name) {
           clientBlock = clientBlock.replace("Name &amp; Designation", signer_name);
           clientBlock = clientBlock.replace("Name & Designation", signer_name);
         }
-        
         if (signedDate) {
-          clientBlock = clientBlock.replace("____________________", signedDate);
-          clientBlock = clientBlock.replace("Date: ", `Date: ${signedDate}`);
+          if (clientBlock.includes("____________________")) clientBlock = clientBlock.replace("____________________", signedDate);
+          else clientBlock = clientBlock.replace("Date: ", `Date: ${signedDate}`);
         }
-        
-        parts[2] = clientBlock;
+        parts[2] = client_block;
         hydratedHtml = parts.join('<div class="sig-line">');
-        
         if (!hydratedHtml.includes('Dancing+Script')) {
           hydratedHtml = `<style>@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');</style>${hydratedHtml}`;
         }
@@ -341,6 +370,46 @@ export default function ContractView() {
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
+        
+        /* Signature Section Professional Layout */
+        .sig-container {
+          display: flex !important;
+          justify-content: space-between !important;
+          align-items: flex-start !important;
+          margin-top: 60px !important;
+          gap: 100px !important;
+        }
+        
+        .sig-block {
+          flex: 1 !important;
+          width: 45% !important;
+          min-width: 0 !important;
+        }
+
+        /* Legacy Table Support */
+        .sig-table {
+          width: 100% !important;
+          border-collapse: collapse !important;
+          margin-top: 60px !important;
+        }
+        
+        .sig-table td {
+          width: 50% !important;
+          padding: 0 40px 0 0 !important;
+          vertical-align: top !important;
+        }
+        
+        .sig-table td:last-child {
+          padding: 0 0 0 40px !important;
+        }
+
+        .sig-line {
+          border-top: 1px solid #000 !important;
+          padding-top: 12px !important;
+          margin-top: 48px !important;
+          font-size: 11pt !important;
+          color: #111 !important;
+        }
       `}</style>
     </div>
   );
