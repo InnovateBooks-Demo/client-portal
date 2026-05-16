@@ -87,7 +87,26 @@ export default function CompanyDetails() {
 
   useEffect(() => {
     if (profile) {
-      setLocalData(profile);
+      setLocalData(prev => {
+        // Initial hydration: Load the entire profile into local state
+        if (!prev) return profile;
+
+        // Subsequent updates (e.g. after document upload refresh):
+        // Merge server-side fields that need synchronization while preserving 
+        // the user's unsaved text entries in legal, address, contacts, and tax sections.
+        return {
+          ...prev,
+          documents: profile.documents || prev.documents,
+          completion_status: profile.completion_status || prev.completion_status,
+          overall_completion: profile.overall_completion || prev.overall_completion,
+          profile_status: profile.profile_status || prev.profile_status,
+          review_status: profile.review_status || prev.review_status,
+          edit_enabled_by_admin: profile.edit_enabled_by_admin ?? prev.edit_enabled_by_admin,
+          contract_status: profile.contract_status || prev.contract_status,
+          contract_sub_stage: profile.contract_sub_stage || prev.contract_sub_stage,
+          lead_id: profile.lead_id || prev.lead_id
+        };
+      });
     }
   }, [profile]);
 
@@ -470,6 +489,25 @@ export default function CompanyDetails() {
   const currentSection = steps[currentStep].id;
   const generalError = sectionErrors[currentSection]?._general;
 
+  const isLocked = localData?.profile_status === 'submitted' || 
+                   localData?.profile_status === 'finalized' || 
+                   localData?.review_status === 'approved' ||
+                   ['sent', 'signed', 'completed'].includes(localData?.contract_status?.toLowerCase()) ||
+                   ['sent', 'signed', 'completed'].includes(localData?.contract_sub_stage?.toLowerCase()) ||
+                   (localData?.profile_status && !localData?.edit_enabled_by_admin);
+
+  const safeHandleNext = async () => {
+    if (isLocked) {
+        if (currentStep < steps.length - 1) {
+            setCurrentStep(curr => curr + 1);
+        } else {
+            navigate("/dashboard");
+        }
+        return;
+    }
+    await handleNext();
+  };
+
   if (loading && !localData) {
     return (
       <div className="portal-layout dashboard-theme">
@@ -546,23 +584,26 @@ export default function CompanyDetails() {
           {/* Left Column - Inputs */}
           <div>
             <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '2rem', display: 'grid', gap: '1.25rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
-              <InputField label="Legal Name" value={localData.legal.legal_name} error={sectionErrors.legal.legal_name} onChange={(v) => handleInputChange('legal', 'legal_name', v)} />
-              <InputField label="PAN" value={localData.legal.pan} error={sectionErrors.legal.pan} onChange={(v) => handleInputChange('legal', 'pan', v)} />
-              <InputField label="GSTIN" value={localData.legal.gstin} error={sectionErrors.legal.gstin} onChange={(v) => handleInputChange('legal', 'gstin', v)} />
-              <InputField label="CIN / LLPIN" value={localData.legal.cin} error={sectionErrors.legal.cin} onChange={(v) => handleInputChange('legal', 'cin', v)} placeholder="If applicable" />
-              <InputField label="Date of Incorporation" type="date" value={localData.legal.incorporation_date} error={sectionErrors.legal.incorporation_date} onChange={(v) => handleInputChange('legal', 'incorporation_date', v)} />
+              <InputField label="Legal Name" value={localData.legal.legal_name} error={sectionErrors.legal.legal_name} onChange={(v) => handleInputChange('legal', 'legal_name', v)} disabled={isLocked} />
+              <InputField label="PAN" value={localData.legal.pan} error={sectionErrors.legal.pan} onChange={(v) => handleInputChange('legal', 'pan', v)} disabled={isLocked} />
+              <InputField label="GSTIN" value={localData.legal.gstin} error={sectionErrors.legal.gstin} onChange={(v) => handleInputChange('legal', 'gstin', v)} disabled={isLocked} />
+              <InputField label="CIN / LLPIN" value={localData.legal.cin} error={sectionErrors.legal.cin} onChange={(v) => handleInputChange('legal', 'cin', v)} placeholder="If applicable" disabled={isLocked} />
+              <InputField label="Date of Incorporation" type="date" value={localData.legal.incorporation_date} error={sectionErrors.legal.incorporation_date} onChange={(v) => handleInputChange('legal', 'incorporation_date', v)} disabled={isLocked} />
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, color: sectionErrors.legal.constitution_type ? '#ef4444' : '#475569' }}>Constitution Type</label>
                 <select 
                   value={localData.legal.constitution_type} 
                   onChange={(e) => handleInputChange('legal', 'constitution_type', e.target.value)}
+                  disabled={isLocked}
                   style={{ 
                     padding: '0.75rem 1rem', 
                     borderRadius: '12px', 
                     border: sectionErrors.legal.constitution_type ? '2px solid #ef4444' : '1px solid #cbd5e1', 
                     fontSize: '0.9rem',
-                    background: sectionErrors.legal.constitution_type ? '#fef2f2' : 'white',
+                    background: isLocked ? '#f1f5f9' : (sectionErrors.legal.constitution_type ? '#fef2f2' : 'white'),
+                    color: isLocked ? '#94a3b8' : '#0f172a',
+                    cursor: isLocked ? 'not-allowed' : 'pointer',
                     outline: 'none',
                     fontFamily: 'inherit'
                   }}
@@ -599,6 +640,7 @@ export default function CompanyDetails() {
                     uploadingDoc={uploadingDoc}
                     sectionErrors={sectionErrors}
                     handleUpload={handleUpload}
+                    disabled={isLocked}
                   />
                 ))}
               </div>
@@ -620,7 +662,7 @@ export default function CompanyDetails() {
               <AddressFormBlock
                 data={localData.address.registered || {}}
                 onChange={(field, value) => handleAddressFieldChange('registered', field, value)}
-                disabled={false}
+                disabled={isLocked}
               />
             </div>
 
@@ -628,9 +670,11 @@ export default function CompanyDetails() {
             <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '2rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Additional Places of Business <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#94a3b8' }}>(Optional)</span></h3>
-                <button onClick={addLocation} style={{ background: '#e0eeff', color: '#033F99', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  <Plus size={14} /> Add Location
-                </button>
+                {!isLocked && (
+                  <button onClick={addLocation} style={{ background: '#e0eeff', color: '#033F99', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <Plus size={14} /> Add Location
+                  </button>
+                )}
               </div>
               {(localData.address.additional_locations || []).length === 0 && (
                 <p style={{ color: '#94a3b8', fontSize: '0.85rem', textAlign: 'center', padding: '1rem 0' }}>No additional locations added.</p>
@@ -639,14 +683,16 @@ export default function CompanyDetails() {
                 <div key={idx} style={{ border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', marginBottom: '1rem', position: 'relative' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>Location {idx + 1}</span>
-                    <button onClick={() => removeLocation(idx)} style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '0.3rem 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#ef4444', fontSize: '0.75rem', fontWeight: 600 }}>
-                      <Trash2 size={12} /> Remove
-                    </button>
+                    {!isLocked && (
+                      <button onClick={() => removeLocation(idx)} style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '0.3rem 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', color: '#ef4444', fontSize: '0.75rem', fontWeight: 600 }}>
+                        <Trash2 size={12} /> Remove
+                      </button>
+                    )}
                   </div>
                   <AddressFormBlock
                     data={loc}
                     onChange={(field, value) => handleLocationFieldChange(idx, field, value)}
-                    disabled={false}
+                    disabled={isLocked}
                   />
                 </div>
               ))}
@@ -656,8 +702,8 @@ export default function CompanyDetails() {
             <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '2rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                 <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Billing Address</h3>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
-                  <input type="checkbox" checked={localData.address.billing?.same_as === 'registered'} onChange={() => handleSameAsToggle('billing', 'registered')} style={{ width: '1rem', height: '1rem' }} />
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: isLocked ? 'not-allowed' : 'pointer', fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+                  <input type="checkbox" checked={localData.address.billing?.same_as === 'registered'} onChange={() => handleSameAsToggle('billing', 'registered')} disabled={isLocked} style={{ width: '1rem', height: '1rem' }} />
                   Same as Registered
                 </label>
               </div>
@@ -665,7 +711,7 @@ export default function CompanyDetails() {
               <AddressFormBlock
                 data={localData.address.billing || {}}
                 onChange={(field, value) => handleAddressFieldChange('billing', field, value)}
-                disabled={localData.address.billing?.same_as === 'registered'}
+                disabled={isLocked || localData.address.billing?.same_as === 'registered'}
               />
             </div>
 
@@ -673,8 +719,8 @@ export default function CompanyDetails() {
             <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '2rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                 <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Shipping Address</h3>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
-                  <input type="checkbox" checked={localData.address.shipping?.same_as === 'billing'} onChange={() => handleSameAsToggle('shipping', 'billing')} style={{ width: '1rem', height: '1rem' }} />
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: isLocked ? 'not-allowed' : 'pointer', fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+                  <input type="checkbox" checked={localData.address.shipping?.same_as === 'billing'} onChange={() => handleSameAsToggle('shipping', 'billing')} disabled={isLocked} style={{ width: '1rem', height: '1rem' }} />
                   Same as Billing
                 </label>
               </div>
@@ -682,7 +728,7 @@ export default function CompanyDetails() {
               <AddressFormBlock
                 data={localData.address.shipping || {}}
                 onChange={(field, value) => handleAddressFieldChange('shipping', field, value)}
-                disabled={localData.address.shipping?.same_as === 'billing'}
+                disabled={isLocked || localData.address.shipping?.same_as === 'billing'}
               />
             </div>
           </div>
@@ -698,6 +744,7 @@ export default function CompanyDetails() {
                 uploadingDoc={uploadingDoc}
                 sectionErrors={sectionErrors}
                 handleUpload={handleUpload}
+                disabled={isLocked}
               />
               <p style={{ margin: '1rem 0 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>Accepted: Electricity Bill, Rent Agreement, Utility Bill</p>
             </div>
@@ -722,6 +769,7 @@ export default function CompanyDetails() {
                 email: sectionErrors.contacts?.['primary.email'],
               }}
               showDesignation={false}
+              disabled={isLocked}
             />
 
             {/* Finance Contact */}
@@ -736,6 +784,7 @@ export default function CompanyDetails() {
               }}
               highlightEmail
               showDesignation={false}
+              disabled={isLocked}
             />
 
             {/* Authorized Signatory */}
@@ -749,6 +798,7 @@ export default function CompanyDetails() {
                 email: sectionErrors.contacts?.['authorized_signatory.email'],
               }}
               showDesignation
+              disabled={isLocked}
             />
           </div>
 
@@ -765,6 +815,7 @@ export default function CompanyDetails() {
                   uploadingDoc={uploadingDoc}
                   sectionErrors={sectionErrors}
                   handleUpload={handleUpload}
+                  disabled={isLocked}
                 />
                 <DocumentUploadCard
                   docType="id_proof"
@@ -773,6 +824,7 @@ export default function CompanyDetails() {
                   uploadingDoc={uploadingDoc}
                   sectionErrors={sectionErrors}
                   handleUpload={handleUpload}
+                  disabled={isLocked}
                 />
               </div>
             </div>
@@ -792,7 +844,9 @@ export default function CompanyDetails() {
         const selStyle = (hasErr) => ({
           padding: '0.75rem 1rem', borderRadius: '12px',
           border: hasErr ? '2px solid #ef4444' : '1px solid #cbd5e1',
-          fontSize: '0.9rem', background: hasErr ? '#fef2f2' : 'white',
+          fontSize: '0.9rem', background: isLocked ? '#f1f5f9' : (hasErr ? '#fef2f2' : 'white'),
+          color: isLocked ? '#94a3b8' : '#0f172a',
+          cursor: isLocked ? 'not-allowed' : 'pointer',
           outline: 'none', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit'
         });
 
@@ -806,7 +860,7 @@ export default function CompanyDetails() {
                 <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>GST Classification</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 600, color: sectionErrors.tax?.gst_type ? '#ef4444' : '#475569' }}>GST Type *</label>
-                  <select value={tax.gst_type || ''} onChange={(e) => handleInputChange('tax', 'gst_type', e.target.value)} style={selStyle(!!sectionErrors.tax?.gst_type)}>
+                  <select value={tax.gst_type || ''} onChange={(e) => handleInputChange('tax', 'gst_type', e.target.value)} style={selStyle(!!sectionErrors.tax?.gst_type)} disabled={isLocked}>
                     <option value="">Select GST Type</option>
                     <option value="regular">Regular</option>
                     <option value="composition">Composition</option>
@@ -830,7 +884,7 @@ export default function CompanyDetails() {
                     <label style={{ fontSize: '0.85rem', fontWeight: 600, color: sectionErrors.tax?.lut_number ? '#ef4444' : '#475569' }}>
                       LUT Number * <span style={{ fontWeight: 400, color: '#64748b', fontSize: '0.8rem' }}>(Mandatory for SEZ)</span>
                     </label>
-                    <input value={tax.lut_number || ''} onChange={(e) => handleInputChange('tax', 'lut_number', e.target.value)} placeholder="LUT reference number" style={{ padding: '0.75rem 1rem', borderRadius: '12px', border: sectionErrors.tax?.lut_number ? '2px solid #ef4444' : '1px solid #cbd5e1', fontSize: '0.9rem', background: sectionErrors.tax?.lut_number ? '#fef2f2' : 'white', outline: 'none' }} />
+                    <input value={tax.lut_number || ''} onChange={(e) => handleInputChange('tax', 'lut_number', e.target.value)} placeholder="LUT reference number" style={{ padding: '0.75rem 1rem', borderRadius: '12px', border: sectionErrors.tax?.lut_number ? '2px solid #ef4444' : '1px solid #cbd5e1', fontSize: '0.9rem', background: isLocked ? '#f1f5f9' : (sectionErrors.tax?.lut_number ? '#fef2f2' : 'white'), color: isLocked ? '#94a3b8' : '#0f172a', cursor: isLocked ? 'not-allowed' : 'text', outline: 'none' }} disabled={isLocked} />
                     {sectionErrors.tax?.lut_number && <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><AlertCircle size={12} />{sectionErrors.tax.lut_number}</span>}
                   </div>
                 )}
@@ -843,8 +897,8 @@ export default function CompanyDetails() {
                     <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>TDS Applicability</h3>
                     <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>Does this company deduct TDS before payment?</p>
                   </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }}>
-                    <div onClick={() => handleInputChange('tax', 'tds_applicable', !tax.tds_applicable)} style={{ width: '44px', height: '24px', borderRadius: '12px', background: tax.tds_applicable ? '#033F99' : '#cbd5e1', position: 'relative', transition: 'background 0.2s', cursor: 'pointer', flexShrink: 0 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: isLocked ? 'not-allowed' : 'pointer' }}>
+                    <div onClick={() => { if (!isLocked) handleInputChange('tax', 'tds_applicable', !tax.tds_applicable) }} style={{ width: '44px', height: '24px', borderRadius: '12px', background: tax.tds_applicable ? '#033F99' : '#cbd5e1', position: 'relative', transition: 'background 0.2s', cursor: isLocked ? 'not-allowed' : 'pointer', flexShrink: 0, opacity: isLocked ? 0.6 : 1 }}>
                       <div style={{ position: 'absolute', top: '3px', left: tax.tds_applicable ? '23px' : '3px', width: '18px', height: '18px', borderRadius: '50%', background: 'white', transition: 'left 0.2s' }} />
                     </div>
                     <span style={{ fontSize: '0.85rem', fontWeight: 700, color: tax.tds_applicable ? '#033F99' : '#94a3b8' }}>{tax.tds_applicable ? 'Yes' : 'No'}</span>
@@ -855,7 +909,7 @@ export default function CompanyDetails() {
                   <div style={{ display: 'grid', gap: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <label style={{ fontSize: '0.85rem', fontWeight: 600, color: sectionErrors.tax?.tds_section ? '#ef4444' : '#475569' }}>TDS Section *</label>
-                      <select value={tax.tds_section || ''} onChange={(e) => handleInputChange('tax', 'tds_section', e.target.value)} style={selStyle(!!sectionErrors.tax?.tds_section)}>
+                      <select value={tax.tds_section || ''} onChange={(e) => handleInputChange('tax', 'tds_section', e.target.value)} style={selStyle(!!sectionErrors.tax?.tds_section)} disabled={isLocked}>
                         <option value="">Select TDS Section</option>
                         <option value="194C">194C — Contractor payments</option>
                         <option value="194J">194J — Professional / Technical services</option>
@@ -866,7 +920,7 @@ export default function CompanyDetails() {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <label style={{ fontSize: '0.85rem', fontWeight: 600, color: sectionErrors.tax?.tan ? '#ef4444' : '#475569' }}>TAN *</label>
-                      <input value={tax.tan || ''} onChange={(e) => handleInputChange('tax', 'tan', e.target.value.toUpperCase())} placeholder="e.g. ABCD01234E" maxLength={10} style={{ padding: '0.75rem 1rem', borderRadius: '12px', border: sectionErrors.tax?.tan ? '2px solid #ef4444' : '1px solid #cbd5e1', fontSize: '0.9rem', background: sectionErrors.tax?.tan ? '#fef2f2' : 'white', outline: 'none', textTransform: 'uppercase' }} />
+                      <input value={tax.tan || ''} onChange={(e) => handleInputChange('tax', 'tan', e.target.value.toUpperCase())} placeholder="e.g. ABCD01234E" maxLength={10} style={{ padding: '0.75rem 1rem', borderRadius: '12px', border: sectionErrors.tax?.tan ? '2px solid #ef4444' : '1px solid #cbd5e1', fontSize: '0.9rem', background: isLocked ? '#f1f5f9' : (sectionErrors.tax?.tan ? '#fef2f2' : 'white'), color: isLocked ? '#94a3b8' : '#0f172a', cursor: isLocked ? 'not-allowed' : 'text', outline: 'none', textTransform: 'uppercase' }} disabled={isLocked} />
                       {sectionErrors.tax?.tan && <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><AlertCircle size={12} />{sectionErrors.tax.tan}</span>}
                     </div>
                   </div>
@@ -944,8 +998,8 @@ export default function CompanyDetails() {
         
         <button 
           className="btn btn-primary"
-          onClick={currentStep === steps.length - 1 ? handleFinish : handleNext}
-          disabled={savingStep || (currentStep === 0 && Object.keys(validateLegalStep(localData.legal, localData.documents)).length > 0)}
+          onClick={currentStep === steps.length - 1 ? (isLocked ? () => navigate("/dashboard") : handleFinish) : safeHandleNext}
+          disabled={savingStep || (!isLocked && currentStep === 0 && Object.keys(validateLegalStep(localData.legal, localData.documents)).length > 0)}
           style={{ 
             background: '#033F99', 
             color: 'white', 
@@ -962,7 +1016,7 @@ export default function CompanyDetails() {
             boxShadow: '0 4px 6px -1px rgba(3, 63, 153, 0.2)'
           }}
         >
-          {savingStep ? <Loader2 size={18} className="animate-spin" /> : (currentStep === steps.length - 1 ? 'Finish Profile' : 'Save & Continue')}
+          {savingStep ? <Loader2 size={18} className="animate-spin" /> : (isLocked ? (currentStep === steps.length - 1 ? 'Go to Dashboard' : 'Next Step') : (currentStep === steps.length - 1 ? 'Finish Profile' : 'Save & Continue'))}
           {!savingStep && currentStep < steps.length - 1 && <ChevronRight size={18} />}
         </button>
       </div>
@@ -970,7 +1024,7 @@ export default function CompanyDetails() {
   );
 }
 
-function DocumentUploadCard({ docType, docLabel, localData, uploadingDoc, sectionErrors, handleUpload }) {
+function DocumentUploadCard({ docType, docLabel, localData, uploadingDoc, sectionErrors, handleUpload, disabled = false }) {
   const uploadedDoc = localData.documents?.[docType];
   const isUploading = uploadingDoc === docType;
   const errorMsg = sectionErrors.documents?.[docType];
@@ -999,20 +1053,24 @@ function DocumentUploadCard({ docType, docLabel, localData, uploadingDoc, sectio
         <div>
           {uploadedDoc ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.3rem' }}>
-              <label style={{ cursor: 'pointer', background: 'white', border: '1px solid #e2e8f0', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, color: '#475569', transition: 'background 0.2s' }}>
-                {isUploading ? <Loader2 size={14} className="animate-spin" /> : 'Replace'}
-                <input type="file" style={{ display: 'none' }} accept=".pdf,.png,.jpeg,.jpg" onChange={(e) => handleUpload(docType, e.target.files[0])} disabled={isUploading} />
-              </label>
+              {!disabled && (
+                <label style={{ cursor: 'pointer', background: 'white', border: '1px solid #e2e8f0', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, color: '#475569', transition: 'background 0.2s' }}>
+                  {isUploading ? <Loader2 size={14} className="animate-spin" /> : 'Replace'}
+                  <input type="file" style={{ display: 'none' }} accept=".pdf,.png,.jpeg,.jpg" onChange={(e) => handleUpload(docType, e.target.files[0])} disabled={isUploading || disabled} />
+                </label>
+              )}
               <span style={{ fontSize: '0.7rem', color: '#94a3b8', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={uploadedDoc.file_name}>
                 {uploadedDoc.file_name}
               </span>
             </div>
           ) : (
-            <label style={{ cursor: 'pointer', background: '#e0eeff', color: '#033F99', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', opacity: isUploading ? 0.7 : 1 }}>
-              {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-              {isUploading ? 'Uploading' : 'Upload'}
-              <input type="file" style={{ display: 'none' }} accept=".pdf,.png,.jpeg,.jpg" onChange={(e) => handleUpload(docType, e.target.files[0])} disabled={isUploading} />
-            </label>
+            !disabled && (
+              <label style={{ cursor: 'pointer', background: '#e0eeff', color: '#033F99', border: 'none', padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', opacity: isUploading ? 0.7 : 1 }}>
+                {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                {isUploading ? 'Uploading' : 'Upload'}
+                <input type="file" style={{ display: 'none' }} accept=".pdf,.png,.jpeg,.jpg" onChange={(e) => handleUpload(docType, e.target.files[0])} disabled={isUploading || disabled} />
+              </label>
+            )
           )}
         </div>
       </div>
@@ -1025,7 +1083,7 @@ function DocumentUploadCard({ docType, docLabel, localData, uploadingDoc, sectio
   );
 }
 
-function InputField({ label, value, onChange, placeholder, type = "text", isTextArea = false, error }) {
+function InputField({ label, value, onChange, placeholder, type = "text", isTextArea = false, error, disabled = false }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       <label style={{ fontSize: '0.85rem', fontWeight: 600, color: error ? '#ef4444' : '#475569' }}>{label}</label>
@@ -1034,6 +1092,7 @@ function InputField({ label, value, onChange, placeholder, type = "text", isText
           value={value || ''} 
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          disabled={disabled}
           style={{ 
             padding: '0.75rem 1rem', 
             borderRadius: '12px', 
@@ -1042,7 +1101,9 @@ function InputField({ label, value, onChange, placeholder, type = "text", isText
             minHeight: '80px',
             resize: 'vertical',
             fontFamily: 'inherit',
-            background: error ? '#fef2f2' : 'white',
+            background: disabled ? '#f1f5f9' : (error ? '#fef2f2' : 'white'),
+            color: disabled ? '#94a3b8' : '#0f172a',
+            cursor: disabled ? 'not-allowed' : 'text',
             outline: 'none'
           }}
         />
@@ -1052,12 +1113,15 @@ function InputField({ label, value, onChange, placeholder, type = "text", isText
           value={value || ''} 
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          disabled={disabled}
           style={{ 
             padding: '0.75rem 1rem', 
             borderRadius: '12px', 
             border: error ? '2px solid #ef4444' : '1px solid #cbd5e1', 
             fontSize: '0.9rem',
-            background: error ? '#fef2f2' : 'white',
+            background: disabled ? '#f1f5f9' : (error ? '#fef2f2' : 'white'),
+            color: disabled ? '#94a3b8' : '#0f172a',
+            cursor: disabled ? 'not-allowed' : 'text',
             outline: 'none'
           }}
         />
@@ -1115,13 +1179,15 @@ function AddressFormBlock({ data, onChange, disabled }) {
   );
 }
 
-function ContactFormBlock({ title, subtitle, data, onChange, errors = {}, showDesignation = false, highlightEmail = false }) {
+function ContactFormBlock({ title, subtitle, data, onChange, errors = {}, showDesignation = false, highlightEmail = false, disabled = false }) {
   const inputStyle = (hasError) => ({
     padding: '0.75rem 1rem',
     borderRadius: '12px',
     border: hasError ? '2px solid #ef4444' : '1px solid #cbd5e1',
     fontSize: '0.9rem',
-    background: hasError ? '#fef2f2' : 'white',
+    background: disabled ? '#f1f5f9' : (hasError ? '#fef2f2' : 'white'),
+    color: disabled ? '#94a3b8' : '#0f172a',
+    cursor: disabled ? 'not-allowed' : 'text',
     outline: 'none',
     width: '100%',
     boxSizing: 'border-box'
@@ -1146,7 +1212,7 @@ function ContactFormBlock({ title, subtitle, data, onChange, errors = {}, showDe
         {/* Name */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           <label style={labelStyle(!!errors.name, false)}>Full Name *</label>
-          <input value={data.name || ''} onChange={(e) => onChange('name', e.target.value)} style={inputStyle(!!errors.name)} placeholder="Full Name" />
+          <input value={data.name || ''} onChange={(e) => onChange('name', e.target.value)} style={inputStyle(!!errors.name)} placeholder="Full Name" disabled={disabled} />
           {errors.name && <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><AlertCircle size={12} />{errors.name}</span>}
         </div>
 
@@ -1156,14 +1222,14 @@ function ContactFormBlock({ title, subtitle, data, onChange, errors = {}, showDe
             Email *
             {highlightEmail && <span style={{ fontSize: '0.7rem', fontWeight: 700, background: '#fff7ed', color: '#dc6f00', padding: '0.1rem 0.4rem', borderRadius: '4px', border: '1px solid #fdba74' }}>Required for invoicing</span>}
           </label>
-          <input type="email" value={data.email || ''} onChange={(e) => onChange('email', e.target.value)} style={inputStyle(!!errors.email)} placeholder="email@company.com" />
+          <input type="email" value={data.email || ''} onChange={(e) => onChange('email', e.target.value)} style={inputStyle(!!errors.email)} placeholder="email@company.com" disabled={disabled} />
           {errors.email && <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}><AlertCircle size={12} />{errors.email}</span>}
         </div>
 
         {/* Phone */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           <label style={labelStyle(false, false)}>Phone</label>
-          <input type="tel" value={data.phone || ''} onChange={(e) => onChange('phone', e.target.value)} style={inputStyle(false)} placeholder="+91 XXXXX XXXXX" />
+          <input type="tel" value={data.phone || ''} onChange={(e) => onChange('phone', e.target.value)} style={inputStyle(false)} placeholder="+91 XXXXX XXXXX" disabled={disabled} />
         </div>
 
         {/* Designation (Authorized Signatory only) */}
@@ -1173,7 +1239,7 @@ function ContactFormBlock({ title, subtitle, data, onChange, errors = {}, showDe
               Designation
               <span title="Person legally allowed to sign contracts" style={{ cursor: 'help', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>ⓘ</span>
             </label>
-            <input value={data.designation || ''} onChange={(e) => onChange('designation', e.target.value)} style={inputStyle(false)} placeholder="e.g. Managing Director, CEO" />
+            <input value={data.designation || ''} onChange={(e) => onChange('designation', e.target.value)} style={inputStyle(false)} placeholder="e.g. Managing Director, CEO" disabled={disabled} />
           </div>
         )}
       </div>
