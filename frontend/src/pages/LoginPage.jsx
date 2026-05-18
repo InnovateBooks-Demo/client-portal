@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, Loader2, ShieldCheck, ArrowRight, Briefcase, Zap, BarChart3 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import logo from '../assets/synexos-logo.png';
+import logo from '../assets/synexos-logo-transparent.png';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 
 const slides = [
   {
     icon: <Briefcase size={40} />,
-    title: "IB Commerce",
+    title: "Commerce",
     desc: "Unified commerce solutions. Manage payments, revenue, and client relationships in one connected system."
   },
   {
@@ -71,7 +71,7 @@ export default function LoginPage() {
       }
 
       login(json.access_token);
-      
+
       const redirectPath = queryParams.get('redirect');
       if (redirectPath) {
         navigate(redirectPath);
@@ -106,10 +106,9 @@ export default function LoginPage() {
           <div className="login-logo-area" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img
               src={logo}
-              alt="Synexos"
-              style={{ height: '28px', width: 'auto' }}
+              alt="SynexOS"
+              style={{ height: '40px', width: 'auto' }}
             />
-            <span className="login-logo-text">Synexos</span>
           </div>
 
           <div className="login-form-container">
