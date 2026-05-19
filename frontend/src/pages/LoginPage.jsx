@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail, Loader2, ShieldCheck, ArrowRight, Briefcase, Zap, BarChart3 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import logo from '../assets/synexos-logo-transparent.png';
+import logo from '../assets/synexos-logo-transparent-1.png';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '';
 
@@ -106,9 +106,13 @@ export default function LoginPage() {
           <div className="login-logo-area" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img
               src={logo}
-              alt="SynexOS"
-              style={{ height: '40px', width: 'auto' }}
+              alt="SynexOS Logo"
+              style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
             />
+            <span style={{ fontSize: '1.875rem', fontWeight: 700, fontFamily: 'sans-serif', letterSpacing: '-0.025em' }}>
+              <span style={{ color: '#0f172a' }}>Synex</span>
+              <span style={{ color: '#033F99' }}>OS</span>
+            </span>
           </div>
 
           <div className="login-form-container">
