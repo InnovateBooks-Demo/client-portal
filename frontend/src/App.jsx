@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import ContractDashboard from './pages/ContractDashboard.jsx';
 import ContractView from './pages/ContractView.jsx';
 import LoginPage from './pages/LoginPage.jsx';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import OnboardingEntry from './pages/OnboardingEntry.jsx';
 import OnboardingForm from './pages/OnboardingForm.jsx';
 import CompanyDetails from './pages/CompanyDetails.jsx';
@@ -38,6 +39,7 @@ function App() {
             <Route path="/onboarding/:token" element={<OnboardingEntry />} />
             <Route path="/onboarding/form" element={<OnboardingForm />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/portal/expired/:token" element={<ExpiredLinkPage />} />
             <Route path="/portal/invalid" element={<InvalidPortal />} />
             <Route path="/proposal/respond/:proposalId" element={<ProposalRespond />} />

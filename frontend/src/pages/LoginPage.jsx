@@ -143,7 +143,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="login-input-group" style={{ marginBottom: '2rem' }}>
+              <div className="login-input-group" style={{ marginBottom: '1.5rem' }}>
                 <label className="login-label">Password</label>
                 <div style={{ position: 'relative' }}>
                   <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -156,6 +156,26 @@ export default function LoginPage() {
                     onChange={e => setForm({ ...form, password: e.target.value })}
                     required
                   />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/forgot-password")}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#033F99',
+                      cursor: 'pointer',
+                      transition: 'color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.color = '#022D6E'}
+                    onMouseLeave={(e) => e.target.style.color = '#033F99'}
+                  >
+                    Forgot password?
+                  </button>
                 </div>
               </div>
 
